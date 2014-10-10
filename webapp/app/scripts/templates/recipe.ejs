@@ -1,9 +1,21 @@
-<div class="col-sm-6 col-md-4">
-    <div class="thumbnail">
-      <img data-src="holder.js/300x300" alt="...">
-      <div class="caption">
-        <h3><%=recipe.title%></h3> 
-        <p><a href="#recipes/<%=recipe.id%>" class="btn btn-success btn-block" role="button">Open Recipe</a>  </p>
-      </div>
-    </div>
+<h2><%=recipe.title%></h2> 
+<div class="row">
+<div class="  col-md-8"> 
+IMAGE
   </div>
+<div class=" col-md-4"> 
+<h4>Ingredients</h4>
+<ul>
+
+<% _.each(recipe.ingredients, function (ingredient) { %>
+  <li><%=ingredient.title %></li>
+<% }) %>
+</ul>
+<button class="btn btn-success btn-block">Cook this recipe</button>
+  </div>
+  </div>
+
+<h3>Steps</h3>
+<% _.each(recipe.steps, function (step) { %>
+  <li><%=step.title %></li>
+<% }) %>
