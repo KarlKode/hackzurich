@@ -4,17 +4,21 @@ define([
     'jquery',
     'backbone',
     'views/layout',
-    'views/main'
-], function ($, Backbone, LayoutView, MainView) {
+    'views/main',
+    'views/recipes'
+], function ($, Backbone, LayoutView, MainView, RecipesView) {
     'use strict';
 
     var AppRouter = Backbone.Router.extend({
         routes: {
-            '': 'index'
+            '': 'index',
+            'recipes': 'recipes'
         },
 
         views: {
-            'MainView': MainView
+            'MainView': MainView,
+
+            'RecipesView': RecipesView
         },
 
         current_layout: null,
@@ -33,6 +37,10 @@ define([
  
         index: function (argument) {
             this.loadView('main', 'MainView', arguments);
+        },  
+
+        recipes: function (argument) {
+            this.loadView('main', 'RecipesView', arguments);
         },  
 
         loadView : function(layout, view, attr) {
