@@ -5,8 +5,9 @@ define([
     'underscore',
     'backbone',
     'views/base',
-    'templates'
-], function ($, _, Backbone, BaseView, JST) {
+    'templates',
+    'views/menu'
+], function ($, _, Backbone, BaseView, JST,MenuView) {
     'use strict';
 
     var LayoutView = BaseView.extend({
@@ -14,7 +15,7 @@ define([
  
 
         initialize: function () {
-         //   this.subviews = {'#menu':new MenuView()}
+            this.subviews = {'#menu':new MenuView()}
         }
     });
 
