@@ -10,7 +10,7 @@ define([
 ], function ($, _, Backbone, BaseView, JST, RecipesCollection) {
     'use strict';
 
-    var DashboardView = BaseView.extend({
+    var RecipesView = BaseView.extend({
         template: JST['app/scripts/templates/recipes.ejs'],
  
  
@@ -27,5 +27,5 @@ define([
         }
     });
 
-    return DashboardView;
+    return RecipesView;
 });
