@@ -1,6 +1,14 @@
-asdasd
-a<ul>
+<h3>Recipes</h3>
+<div class="row">
 <% _.each(recipes, function (recipe) { %>
-	<li>asdasdasd</li>
+  <div class="col-sm-6 col-md-4">
+    <div class="thumbnail">
+      <img data-src="holder.js/300x300" alt="...">
+      <div class="caption">
+        <h3><%=recipe.title%></h3> 
+        <p><a href="#recipes/<%=recipe.id%>" class="btn btn-success btn-block" role="button">Open Recipe</a>  </p>
+      </div>
+    </div>
+  </div>
 <% }) %>
-</ul>
+</div> 
