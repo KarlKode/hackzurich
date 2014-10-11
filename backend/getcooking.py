@@ -51,7 +51,7 @@ def load():
             # Is one of the products ean codes already in the database?
             ean = None
             for ean_code in eans:
-                ean = EAN.query.filter_by(ean=ean_code).first()
+                ean = EAN.query.filter_by(ean=int(ean_code)).first()
                 if ean:
                     break
             if ean:
