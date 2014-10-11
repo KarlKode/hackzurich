@@ -75,7 +75,7 @@ def shopping_list_details():
         db.session.commit()
     else:
         shopping_list = ShoppingList.query.order_by(ShoppingList.id.desc()).first()
-    return jsonify(items=list(map(to_json, shopping_list.ingredients)))
+    return jsonify(ingredients=list(map(to_json, shopping_list.ingredients)))
 
 
 @app.route('/inventory', methods=['GET', 'POST', 'DELETE'])
