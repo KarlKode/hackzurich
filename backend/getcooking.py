@@ -1,7 +1,14 @@
-import random
-
+import logging
+from xml.etree import ElementTree
+from evernote.api.client import EvernoteClient
+from evernote.edam.notestore.ttypes import NoteFilter, NotesMetadataResultSpec
+from evernote.edam.type.ttypes import Tag
 from flask import Flask, jsonify, request, abort
+from flask.ext import admin
+from flask.ext.admin.contrib import sqla
+from flask.ext.admin.contrib.sqla.ajax import QueryAjaxModelLoader
 import requests
+from sqlalchemy.orm import joinedload, contains_eager
 from sqlalchemy.orm.exc import NoResultFound
 
 from flask.ext.cors import CORS
@@ -21,32 +28,24 @@ def hello_world():
     return 'GET /shopping_list<br>POST /inventory<br>GET /recipes'
 
 
-@app.route('/install')
+@app.route('/installaaaaaaaa')
 def install():
     db.drop_all()
     db.create_all()
-    ingredients = []
-    for i in range(0, 20):
-        i0 = Ingredient('tomato' + str(i), [i])
-        db.session.add(i0)
-        ingredients.append(i0)
-    i3 = Ingredient('markers', [3086120017446])
-    db.session.add(i3)
-    ingredients.append(i3)
+    sl = ShoppingList()
+    sl.user = 'marc@marcg.ch'
+    db.session.add(sl)
 
-    s0 = ShoppingList()
-    s0.add_ingredient(i3, '1', 'foo')
-    db.session.add(s0)
+    inv = Inventory()
+    inv.user = 'marc@marcg.ch'
+    db.session.add(inv)
 
-    inventory0 = Inventory("user@user.com")
-    db.session.add(inventory0)
     db.session.commit()
     return 'done'
 
 
 @app.route('/load')
 def load():
-    ingredients = []
     # Get total hits
     base_url = url = 'https://test-web-api.migros.ch/eth-hack/products?key=k0DFQajkP8AnGMF9&limit=%d&offset=%d'
     r = requests.get(base_url % (0, 0))
@@ -54,36 +53,39 @@ def load():
     if not 'total_hits' in data:
         abort(500)
     total = int(data['total_hits'])
-    while len(ingredients) < total:
-        r = requests.get(base_url % (100, len(ingredients)))
+    inserted = 0
+    while inserted < total:
+        r = requests.get(base_url % (100, inserted))
         data = r.json()
         if not 'products' in data:
             abort(500)
         products = data['products'].values()
         for product in products:
             eans = product['eans']
-            # Is one of the products ean codes already in the database?
-            ean = None
-            for ean_code in eans:
-                ean = EAN.query.get(ean_code)
-                if ean:
-                    break
-            if ean:
-                ingredient = ean.ingredient
+            if len(eans)>0:
+                ingredient = Ingredient()
+                db.session.add(ingredient)
+                ingredient.title = product['name']
                 for ean_code in eans:
                     ingredient.add_ean(ean_code)
-            else:
-                ingredient = Ingredient(product['name'], eans)
-                db.session.add(ingredient)
-            ingredient.from_product(product)
-            ingredients.append(ingredient)
-    db.session.commit()
-    return jsonify(success=True, imported=len(ingredients))
+                ingredient.from_product(product)
+            inserted += 1
+        db.session.commit()
+    return jsonify(success=True, imported=inserted)
 
 
 @app.route('/ingredient')
 def ingredient_list():
-    ingredients = Ingredient.query.all()
+    query = db.session.query(Ingredient).options(joinedload(Ingredient.eans))
+    if 'q' in request.args:
+        query = query.filter(Ingredient.title.like('%%%s%%' % request.args.get('q')))
+    if 'limit' in request.args:
+        query = query.limit(int(request.args.get('limit')))
+    else:
+        query = query.limit(10)
+    if 'offset' in request.args:
+        query = query.offset(int(request.args.get('offset')))
+    ingredients = query.all()
     return jsonify(ingredients=list(map(to_json, ingredients)))
 
 
@@ -98,36 +100,47 @@ def ingredient_details(ean):
     return jsonify(ingredient=ingredient.to_json())
 
 
+def delete_shoppinglist():
+    data = request.get_json(force=True)
+    if not 'ingredients' in data:
+        abort(400)
+    eans = []
+    ids_remove = []
+    for item in data['ingredients']:
+        if 'id' in item:
+            ids_remove.append(item['id'])
+        else:
+            eans.append(item['ean'])
+    ids = db.session.query(EAN.ingredient_id).filter(EAN.ean.in_(eans)).all()
+    ids = [id[0] for id in ids] + ids_remove
+    db.session.query(ShoppingListIngredients).filter(
+        ShoppingListIngredients.ingredient_id.in_(ids_remove)).delete(
+        synchronize_session='fetch')
+    db.session.commit()
+    return jsonify(ok=True)
+
+
+@app.route('/shopping_list/delete', methods=['POST'])
+def shopping_list_del():
+    return delete_shoppinglist()
+
 @app.route('/shopping_list', methods=['GET', 'POST', 'DELETE'])
 def shopping_list_details():
     if request.method == 'DELETE':
-        data = request.get_json(force=True)
-        if not 'ingredients' in data:
-            abort(400)
-        eans = []
-        for item in data['ingredients']:
-            eans.append(item['ean'])
-        ids = db.session.query(ShoppingListIngredients.id) \
-            .join(ShoppingListIngredients.ingredient) \
-            .filter(Ingredient.ean.in_(eans)).all()
-        ids = [id[0] for id in ids]
-        db.session.query(ShoppingListIngredients).filter(ShoppingListIngredients.id.in_(ids)).delete(
-            synchronize_session='fetch')
-        db.session.commit()
-        return jsonify(ok=True)
+        return delete_shoppinglist()
     elif request.method == 'POST':
         shopping_list = ShoppingList.query.first()
-        db.session.add(shopping_list)
         data = request.get_json(force=True)
         if not 'ingredients' in data:
             abort(400)
         for item in data['ingredients']:
             ingredient = Ingredient.get_by_id_or_ean(item)
-            shopping_list.add_ingredient(ingredient, item['amount'], item['unit'])
+            shopping_list.add_ingredient(ingredient, item.get('amount'), item.get('unit'))
         db.session.commit()
+        return jsonify(ok=True)
     else:
-        shopping_list = ShoppingList.query.order_by(ShoppingList.id.desc()).first()
-    return jsonify(ingredients=list(map(to_json, shopping_list.ingredients)))
+        shopping_list = db.session.query(ShoppingList).options(joinedload(ShoppingList.shopping_list_ingredients,ShoppingListIngredients.ingredient, Ingredient.eans)).first()
+    return jsonify(ingredients=list(i.to_json()  for i in shopping_list.ingredients if i))
 
 
 @app.route('/inventory', methods=['GET', 'POST', 'DELETE'])
@@ -140,7 +153,7 @@ def inventory_details():
         for item in data['inventory']:
             ingredient = Ingredient.get_by_id_or_ean(item)
             if not ingredient:
-                ingredient = Ingredient.fetch(item['ean'])
+                continue
             inventory.add_ingredient(ingredient, None, None)
         db.session.commit()
         return jsonify(inventory=inventory.to_json())
@@ -151,14 +164,16 @@ def inventory_details():
         if not 'inventory' in data:
             abort(400)
         eans = []
+        ids_remove = []
         for item in data['inventory']:
-            eans.append(item['ean'])
-        ids = db.session.query(InventoryIngredients.id) \
-            .join(InventoryIngredients.ingredient) \
-            .filter(Ingredient.ean.in_(eans)).all()
-        ids = [id[0] for id in ids]
-        db.session.query(InventoryIngredients).filter(InventoryIngredients.id.in_(ids)).delete(
-            synchronize_session='fetch')
+            if 'id' in item:
+                ids_remove.append(item['id'])
+            else:
+                eans.append(item['ean'])
+        ids = db.session.query(EAN.ingredient_id).filter(EAN.ean.in_(eans)).all()
+        ids = [id[0] for id in ids] + ids_remove
+        db.session.query(InventoryIngredients).filter(InventoryIngredients.ingredient_id.in_(ids_remove)).delete(
+            synchronize_session='fetch') 
         db.session.commit()
         return jsonify(ok=True)
 
@@ -168,17 +183,35 @@ def inventory_delete(id_or_ean):
     inventory = Inventory.get_current()
     ingredient = Ingredient.get_by_id_or_ean({'id': id_or_ean, 'ean': id_or_ean})
     if not ingredient:
-        ingredient = Ingredient.fetch(id_or_ean)
+        return
     inventory.remove_ingredient(ingredient)
     db.session.commit()
 
 
-@app.route('/recipe')
+def current_inventory():
+    return db.session.query(Inventory).options(joinedload(*Inventory.ingredients.attr)).first().to_json()
+
+
+@app.route('/recipe', methods=['GET'])
 def recipe_list():
-    inventory = Inventory.query.first().to_json()
-    recipes = db.session.query(Recipe).join(Recipe.recipe_ingredients).join(RecipeIngredients.ingredient)
-    recipe_list = list(o.to_json_small(inventory) for o in recipes.all())
-    return jsonify(recipes=sorted(recipe_list, key=lambda x: x['missing']))
+    inventory = current_inventory()
+    if not inventory:
+        abort(400)
+    recipes = db.session.query(Recipe).options(joinedload(*Recipe.ingredients.attr)).options(joinedload(Recipe.steps))
+    recipes = list(o.to_json_small(inventory) for o in recipes.all())
+    return jsonify(recipes=sorted(recipes, key=lambda x: x['missing']))
+
+
+@app.route('/recipe', methods=['POST'])
+def recipe_add():
+    data = request.get_json(force=True)
+    required_fields = ['title', 'images', 'difficulty', 'duration', 'steps']
+    for required_field in required_fields:
+        if not required_field in data:
+            abort(400)
+    recipe = Recipe(data['title'], data['difficulty'], data['duration'], data['images'], data['steps'])
+    db.session.add(recipe)
+    db.session.commit()
 
 
 @app.route('/recipe/best')
@@ -188,11 +221,70 @@ def recipe_best_list():
     return jsonify(recipes=list(map(to_json, recipes)))
 
 
-@app.route('/recipe/<int:recipe_id>')
+@app.route('/recipe/<int:recipe_id>', methods=['GET', 'DELETE'])
 def recipe_details(recipe_id):
-    inventory = Inventory.query.first().to_json()
+    inventory = current_inventory()
     recipe = Recipe.query.get_or_404(recipe_id)
     return jsonify(recipe=recipe.to_json(inventory))
+
+
+@app.route('/parsereceipts')
+def parse_receipts():
+    client = EvernoteClient(token=app.config['EVERNOTE_DEV_TOKEN'], sandbox=False)
+    user_store = client.get_user_store()
+    note_store = client.get_note_store()
+    notebooks = note_store.listNotebooks()
+
+    notebook_guid = None
+    for notebook in notebooks:
+        if notebook.name == app.config['NOTEBOOK']:
+            notebook_guid = notebook.guid
+
+    if not notebook_guid:
+        print 'Notebook not found'
+        return 'Nwotebook not found'
+
+    notebook_filter = NoteFilter()
+    notebook_filter.guid = notebook_guid
+    result_spec = NotesMetadataResultSpec(includeTitle=True, includeTagGuids=True)
+    notes = note_store.findNotesMetadata(app.config['EVERNOTE_DEV_TOKEN'], notebook_filter, 0, 40000, result_spec)
+
+    tags = note_store.listTags()
+    tag_guid = None
+    for tag in tags:
+        if tag.name == app.config['PAID_TAG']:
+            tag_guid = tag.guid
+            break
+
+    if not tag_guid:
+        tag = Tag()
+        tag.name = app.config['PAID_TAG']
+        tag = note_store.createTag(tag)
+        tag_guid = tag.guid
+
+    def update_inventory(values):
+        for title, weight in values:
+            # TODO: Weight cutoff
+            result = db.engine.execute('SELECT id, title, levenstein(%s, ingredient.title) AS distance FROM ingredient WHERE levenstein(%s, ingredient.title) < 5', (title, title))
+            print result
+
+    receipts = []
+
+    for note_title in notes.notes:
+        note = note_store.getNote(note_title.guid, False, True, True, True)
+        if note.tagGuids and tag_guid in note.tagGuids:
+            continue
+        for resource in note.resources:
+            if not resource.recognition:
+                continue
+            root = ElementTree.fromstringlist(resource.recognition.body)
+            for recognitions in root:
+                values = [(v.text, v.attrib['w']) for v in recognitions]
+                update_inventory(values)
+        note.tagGuids = [tag_guid]
+        receipts.append(note.guid)
+        #note_store.updateNote(note)
+    return jsonify(receipts=receipts)
 
 
 @app.after_request
@@ -201,5 +293,43 @@ def close_connection(response):
     return response
 
 
+# Admin stuff
+class IngredientAdmin(sqla.ModelView):
+    column_searchable_list = ('title', Ingredient.title)
+
+admin = admin.Admin(app, 'Recipe')
+admin.add_view(sqla.ModelView(Recipe, db.session))
+admin.add_view(sqla.ModelView(EAN, db.session))
+admin.add_view(IngredientAdmin(Ingredient, db.session))
+admin.add_view(sqla.ModelView(Step, db.session))
+admin.add_view(sqla.ModelView(ShoppingList, db.session))
+admin.add_view(sqla.ModelView(Inventory, db.session))
+
+
+class RecipeIngredientsAdmin(sqla.ModelView):
+    form_ajax_refs = {
+        'ingredient_id': QueryAjaxModelLoader('ingredient', db.session, Ingredient, fields=['title'], page_size=10),
+    }
+
+
+class ShoppingListIngredientsAdmin(sqla.ModelView):
+    form_ajax_refs = {
+        'ingredient_id': QueryAjaxModelLoader('ingredient', db.session, Ingredient, fields=['title'], page_size=10),
+    }
+
+
+class InventoryIngredientsAdmin(sqla.ModelView):
+    form_ajax_refs = {
+        'ingredient_id': QueryAjaxModelLoader('ingredient', db.session, Ingredient, fields=['title'], page_size=10),
+    }
+
+
+admin.add_view(RecipeIngredientsAdmin(RecipeIngredients, db.session))
+admin.add_view(ShoppingListIngredientsAdmin(ShoppingListIngredients, db.session))
+admin.add_view(InventoryIngredientsAdmin(InventoryIngredients, db.session))
+
+
 if __name__ == '__main__':
+    logging.basicConfig()
+    logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
     app.run(threaded=True)

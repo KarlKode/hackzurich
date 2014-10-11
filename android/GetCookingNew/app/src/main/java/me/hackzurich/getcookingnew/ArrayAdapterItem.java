@@ -17,6 +17,7 @@ public class ArrayAdapterItem extends ArrayAdapter<ObjectItem> {
     Context mContext;
     int layoutResourceId;
     ObjectItem data[] = null;
+    private String total;
 
     public ArrayAdapterItem(Context mContext, int layoutResourceId, ObjectItem[] data) {
 
@@ -48,7 +49,8 @@ public class ArrayAdapterItem extends ArrayAdapter<ObjectItem> {
         // get the TextView and then set the text (item name) and tag (item ID) values
         TextView textViewItem = (TextView) convertView.findViewById(R.id.textViewItem);
         CheckBox checkBoxItem = (CheckBox) convertView.findViewById(R.id.checkBoxItem);
-        
+        TextView priceItem = (TextView) convertView.findViewById(R.id.priceItem);
+        priceItem.setText(formatPrice(objectItem.price));
         textViewItem.setText(objectItem.itemName);
         //textViewItem.setTag(objectItem.itemId);
         if(objectItem.bought) {
@@ -67,7 +69,7 @@ public class ArrayAdapterItem extends ArrayAdapter<ObjectItem> {
     	return this.data.length;
     }
 
-    public void adObject(ObjectItem item) {
+    public void addObject(ObjectItem item) {
     	for (int i = 0; i < data.length; i++) {
 			if(data[i].ean.equalsIgnoreCase(item.ean)) {
 				data[i].bought = true;
@@ -78,6 +80,28 @@ public class ArrayAdapterItem extends ArrayAdapter<ObjectItem> {
     	data = java.util.Arrays.copyOf(data, data.length + 1);
     	data[data.length - 1] = item;
     }
-    
-    
+
+
+    public boolean checkByEAN(String ean) {
+        for(ObjectItem item:data){
+            if(item.ean.equals(ean)){
+                item.bought = true;
+                notifyDataSetChanged();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public String getTotal() {
+        int counter = 0;
+        for(ObjectItem item:data){
+            counter+=item.price;
+        }
+        return formatPrice(counter);
+    }
+
+    private String formatPrice(int counter) {
+        return String.format("%d CHF", counter);
+    }
 }

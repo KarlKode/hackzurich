@@ -19,14 +19,25 @@
     </android.support.v4.widget.SwipeRefreshLayout>
 
     <Button
-        android:id="@+id/buttonScan"
+        android:id="@+id/buttoncheckout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true"
-         android:layout_alignParentLeft="true"
+        android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
+        android:text="Checkout" />
+
+    <Button
+        android:id="@+id/buttonScan"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_above="@+id/buttoncheckout"
         android:text="Scan" />
 
     <TextView
