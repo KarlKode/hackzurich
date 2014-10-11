@@ -11,6 +11,9 @@ require.config({
     paths: {
         jquery: '../bower_components/jquery/dist/jquery',
         backbone: '../bower_components/backbone/backbone',
+        selectize: '../bower_components/selectize/dist/js/selectize.min',
+        sifter: '../bower_components/sifter/sifter',
+        microplugin:'../bower_components/microplugin/src/microplugin',
         'arrive': '../vendors/arrive-2.0.0.min',
         'material': '../bower_components/bootstrap-material-design/scripts/material',
         underscore: '../bower_components/underscore/underscore',
