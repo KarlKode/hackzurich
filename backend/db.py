@@ -46,7 +46,7 @@ class Recipe(db.Model):
         db.session.add(ri)
 
     def to_json(self, inventory=None):
-        ingredients = list(map(lambda i: i.to_json(inventory), self.ingredients))
+        ingredients = list(map(to_json, self.ingredients))
         return {
             'id': self.id,
             'title': self.title,
@@ -54,8 +54,8 @@ class Recipe(db.Model):
             'difficulty': self.difficulty,
             'duration': self.duration,
             'ingredients': ingredients,
-            'missing': sum(1 for i in ingredients if i['missing']),
-            'steps': list(map(lambda s: s.to_json(), self.steps))
+            'missing': sum(1 for i in ingredients if 'missing' in i and i['missing']),
+            'steps': list(map(to_json, self.steps))
         }
 
 
@@ -118,7 +118,6 @@ class Ingredient(db.Model):
             'image': self.image,
         }
         if inventory:
-            print(inventory)
             ingredients = inventory['ingredients']
             exists = any(ingredient['id'] == self.id for ingredient in ingredients)
             data['missing'] = not exists
@@ -191,7 +190,7 @@ class ShoppingList(db.Model):
             'id': self.id,
             'user': self.user,
             'recipe': self.recipe.first().to_json(),
-            'ingredients': map(lambda i: i.to_json(), self.ingredients.all()),
+            'ingredients': list(map(to_json, self.ingredients.all())),
         }
 
 
@@ -214,5 +213,9 @@ class Inventory(db.Model):
         return {
             'id': self.id,
             'user': self.user,
-            'ingredients': list(map(lambda i: i.to_json(), self.ingredients)),
+            'ingredients': list(map(to_json, self.ingredients)),
         }
+
+
+def to_json(obj):
+    return obj.to_json()

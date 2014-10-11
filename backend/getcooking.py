@@ -1,16 +1,13 @@
 from flask import Flask, jsonify, request, abort
-import requests
 from sqlalchemy.orm.exc import NoResultFound
-from db import db, Recipe, Ingredient, Inventory, ShoppingList
+
+from db import db, Recipe, Ingredient, Inventory, ShoppingList, to_json
 import settings
+
 
 app = Flask(__name__)
 app.config.from_object(settings)
 db.init_app(app)
-
-
-def to_json(obj):
-    return obj.to_json()
 
 
 @app.route('/')
@@ -48,6 +45,12 @@ def install():
     return 'done'
 
 
+@app.route('/ingredient')
+def ingredient_list():
+    ingredients = Ingredient.query.all()
+    return jsonify(ingredients=list(map(to_json, ingredients)))
+
+
 @app.route('/ingredient/<int:ean>')
 def ingredient_details(ean):
     try:
@@ -71,8 +74,8 @@ def shopping_list_details():
             shopping_list.add_ingredient(ingredient)
         db.session.commit()
     else:
-        shopping_list = ShoppingList.query.order_by(ShoppingList.id.desc()).get_or_404()
-    return jsonify(items=list(map(lambda i: i.to_json(), shopping_list.ingridients)))
+        shopping_list = ShoppingList.query.order_by(ShoppingList.id.desc()).first()
+    return jsonify(items=list(map(to_json, shopping_list.ingridients)))
 
 
 @app.route('/inventory', methods=['GET', 'POST', 'DELETE'])
