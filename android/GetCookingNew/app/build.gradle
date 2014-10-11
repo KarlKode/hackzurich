@@ -25,4 +25,5 @@ dependencies {
     compile 'com.google.android.gms:play-services:5.2.08'
     compile 'com.android.support:appcompat-v7:20.0.0'
     compile files('libs/scanditsdk-barcodepicker-android-4.2.1.jar')
+    compile 'info.hoang8f:fbutton:1.0.5'
 }
