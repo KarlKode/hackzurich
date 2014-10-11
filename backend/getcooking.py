@@ -56,7 +56,6 @@ def load():
             ingredient.from_product(product)
             inserted += 1
         db.session.commit()
-        break
     return jsonify(success=True, imported=inserted)
 
 

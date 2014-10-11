@@ -177,10 +177,14 @@ class Ingredient(db.Model):
         return '<Ingredient %r>' % self.id
 
     def to_json(self, inventory=None):
+        if self.eans:
+            eans = list(map(to_json, self.eans))
+        else:
+            eans = []
         data = {
             'id': self.id,
             'title': self.title,
-            'eans': list(map(to_json, self.eans)),
+            'eans': eans,
             'image': self.image,
             'description': self.description,
             'price': self.price,
@@ -199,6 +203,7 @@ class Ingredient(db.Model):
         except NoResultFound:
             ean = EAN()
             ean.ean = ean_code
+            ean.ingredient = self
             db.session.add(ean)
 
     def from_product(self, product):
