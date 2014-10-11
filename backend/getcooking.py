@@ -4,7 +4,7 @@ from flask.ext import admin
 from flask.ext.admin.contrib import sqla
 from flask.ext.admin.contrib.sqla.ajax import QueryAjaxModelLoader
 import requests
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, contains_eager
 from sqlalchemy.orm.exc import NoResultFound
 
 from flask.ext.cors import CORS
@@ -134,7 +134,7 @@ def shopping_list_details():
         db.session.commit()
         return jsonify(ok=True)
     else:
-        shopping_list = db.session.query(ShoppingList).options(joinedload(*ShoppingList.ingredients.attr)).order_by(ShoppingList.id.desc()).first()
+        shopping_list = db.session.query(ShoppingList).options(contains_eager(ShoppingList.shopping_list_ingredients,ShoppingListIngredients.ingredient, Ingredient.eans)).first()
         print shopping_list.ingredients
     return jsonify(ingredients=list(i.to_json()  for i in shopping_list.ingredients if i))
 
