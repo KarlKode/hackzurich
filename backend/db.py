@@ -1,3 +1,4 @@
+from flask import abort
 from flask.ext.sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.associationproxy import association_proxy
 
@@ -39,8 +40,8 @@ class Recipe(db.Model):
     def __repr__(self):
         return '<Recipe %r>' % self.id
 
-    def add_ingredient(self, ingredient, amount, unit):
-        ri = RecipeIngredients(self, ingredient, amount, unit)
+    def add_ingredient(self, ingredient):
+        ri = RecipeIngredients(self, ingredient, None, None)
         db.session.add(ri)
 
     def to_json(self, inventory=None):
@@ -122,6 +123,14 @@ class Ingredient(db.Model):
             data['missing'] = not exists
         return data
 
+    @staticmethod
+    def get_by_id_or_ean(data):
+        if 'id' in data:
+            return Ingredient.query.get(id=data['id'])
+        elif 'ean' in data:
+            return Ingredient.query.get(ean=data['ean'])
+        abort(404)
+
 
 class Step(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -156,14 +165,14 @@ class ShoppingList(db.Model):
     recipe = db.relationship(Recipe, backref='shopping_lists')
     ingredients = association_proxy('shopping_list_ingredients', 'ingredient')
 
-    def __init__(self, recipe):
-        self.recipe = recipe
+    def __init__(self):
+        self.recipe = None
 
     def __repr__(self):
         return '<Recipe %r>' % self.id
 
-    def add_ingredient(self, ingredient, amount, unit):
-        sli = ShoppingListIngredients(self, ingredient, amount, unit)
+    def add_ingredient(self, ingredient):
+        sli = ShoppingListIngredients(self, ingredient, None, None)
         db.session.add(sli)
 
     def to_json(self):
@@ -186,16 +195,13 @@ class Inventory(db.Model):
     def __repr__(self):
         return '<Inventory %r>' % self.id
 
+    def add_ingredient(self, ingredient):
+        ri = InventoryIngredients(self, ingredient, None, None)
+        db.session.add(ri)
+
     def to_json(self):
         return {
             'id': self.id,
             'user': self.user,
             'ingredients': list(map(lambda i: i.to_json(), self.ingredients)),
         }
-
-    def add_ingredient(self, ingredient, amount, unit):
-        ri = InventoryIngredients(self, ingredient, amount, unit)
-        db.session.add(ri)
-
-    def __init__(self, user):
-        self.user = user
