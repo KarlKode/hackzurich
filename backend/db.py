@@ -18,7 +18,9 @@ class RecipeIngredients(db.Model):
     recipe = db.relationship('Recipe', backref='recipe_ingredients')
     ingredient = db.relationship('Ingredient', backref='recipe_ingredients')
 
-    def __init__(self, recipe, ingredient, amount, unit):
+    def __init__(self, recipe=None, ingredient=None, amount=None, unit=None):
+        if not recipe:
+            return
         self.recipe = recipe
         self.ingredient = ingredient
         self.amount = amount
@@ -91,7 +93,7 @@ class ShoppingListIngredients(db.Model):
     shopping_list = db.relationship('ShoppingList', backref='shopping_list_ingredients')
     ingredient = db.relationship('Ingredient', backref='shopping_list_ingredients')
 
-    def __init__(self, shopping_list, ingredient, amount, unit):
+    def __init__(self, shopping_list=None, ingredient=None, amount=None, unit=None):
         self.shopping_list = shopping_list
         self.ingredient = ingredient
         self.amount = amount
@@ -108,7 +110,9 @@ class InventoryIngredients(db.Model):
     inventory = db.relationship('Inventory', backref='inventory_ingredients')
     ingredient = db.relationship('Ingredient', backref='inventory_ingredients')
 
-    def __init__(self, inventory, ingredient, amount, unit):
+    def __init__(self, inventory=None, ingredient=None, amount=None, unit=None):
+        if not inventory:
+            return
         self.inventory = inventory
         self.ingredient = ingredient
         self.amount = amount
@@ -151,7 +155,9 @@ class Ingredient(db.Model):
     shopping_lists = association_proxy('shopping_list_ingredients', 'shopping_list')
     inventories = association_proxy('inventory_ingredients', 'inventory')
 
-    def __init__(self, title, eans=None, image=None):
+    def __init__(self, title=None, eans=None, image=None):
+        if not title:
+            return
         self.title = title
         if eans:
             for ean in eans:

@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request, abort
 from flask.ext import admin
 from flask.ext.admin.contrib import sqla
+from flask.ext.admin.contrib.sqla.ajax import QueryAjaxModelLoader
 import requests
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -197,7 +198,7 @@ def close_connection(response):
     return response
 
 
-# Admin stuff# Create admin
+# Admin stuff
 class IngredientAdmin(sqla.ModelView):
     column_searchable_list = ('title', Ingredient.title)
 
@@ -208,8 +209,22 @@ admin.add_view(IngredientAdmin(Ingredient, db.session))
 admin.add_view(sqla.ModelView(Step, db.session))
 admin.add_view(sqla.ModelView(ShoppingList, db.session))
 admin.add_view(sqla.ModelView(Inventory, db.session))
-admin.add_view(sqla.ModelView(RecipeIngredients, db.session))
-admin.add_view(sqla.ModelView(InventoryIngredients, db.session))
+
+
+class RecipeIngredientsAdmin(sqla.ModelView):
+    form_ajax_refs = {
+        'ingredient_id': QueryAjaxModelLoader('ingredient', db.session, Ingredient, fields=['title'], page_size=10),
+    }
+
+
+class InventoryIngredientsAdmin(sqla.ModelView):
+    form_ajax_refs = {
+        'ingredient_id': QueryAjaxModelLoader('ingredient', db.session, Ingredient, fields=['title'], page_size=10),
+    }
+
+
+admin.add_view(RecipeIngredientsAdmin(RecipeIngredients, db.session))
+admin.add_view(InventoryIngredientsAdmin(InventoryIngredients, db.session))
 
 
 if __name__ == '__main__':
