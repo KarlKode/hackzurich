@@ -4,13 +4,15 @@
 require.config({
     shim: {
         bootstrap: {
-            deps: ['jquery'],
+            deps: ['jquery','arrive','material'],
             exports: 'jquery'
         }
     },
     paths: {
         jquery: '../bower_components/jquery/dist/jquery',
         backbone: '../bower_components/backbone/backbone',
+        'arrive': '../vendors/arrive-2.0.0.min',
+        'material': '../bower_components/bootstrap-material-design/scripts/material',
         underscore: '../bower_components/underscore/underscore',
         bootstrap: '../bower_components/sass-bootstrap/dist/js/bootstrap'
     }
