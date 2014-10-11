@@ -1,0 +1,26 @@
+<h3>Inventory</h3>
+<div class="row" style="margin-bottom:20px">
+<div class="col-md-12">
+
+<div class="input-group">
+ <input type="text" class="form-control input-lgmodal add_item" placeholder="Add item to inventory">
+  <span class="input-group-addon"><a href="#" class="add_to_inventory">Add to inventory</a></span>
+</div>
+ 
+</div>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+<% _.each(ingredients, function (ingredient) { %>
+    <div class="well">
+ 
+      <div class="caption">
+      <a href="#" class="btn btn-danger remove" data-ean="<%=ingredient.ean%>" role="button" style="float: right;margin: 0;margin-top: -3px;">Remove</a>
+        <h3 style="margin:0"><%=ingredient.title%></h3> 
+      </div>
+    
+  </div>
+<% }) %>
+</div>
+</div> 

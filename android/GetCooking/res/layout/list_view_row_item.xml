@@ -8,17 +8,37 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:layout_toRightOf="@+id/checkBox1"
+        android:layout_toLeftOf="@+id/textView2"
+        android:layout_toRightOf="@+id/checkBoxItem"
         android:text="Item name here..."
         android:textSize="15dp" />
 
     <CheckBox
-        android:id="@+id/checkBox1"
+        android:id="@+id/checkBoxItem"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignBaseline="@+id/textViewItem"
         android:layout_alignBottom="@+id/textViewItem"
         android:enabled="false"
         android:layout_alignParentLeft="true"/>
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignTop="@+id/textViewItem"
+        android:text="CHF"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/textViewItem"
+        android:layout_marginRight="8dp"
+        android:layout_toLeftOf="@+id/textView1"
+        android:text="20"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
 
 </RelativeLayout>

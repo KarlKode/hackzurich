@@ -105,14 +105,17 @@ public class MainActivity extends ActionBarActivity implements OnRefreshListener
 			DataLoader dl = new DataLoader();
 			dl.getIngredientName(new IngredientNameListener() {
 				@Override
-				public void onIngredientNameAvailable(String name) {
+				public void onIngredientNameAvailable(String name, String ean) {
 					if(name == null) {
 						Toast.makeText(getApplicationContext(), "Error while getting the data from the server, please try later", Toast.LENGTH_LONG).show();
 						mSwipeLayout.setRefreshing(false);
 					} else {
-						ObjectItem obj = new ObjectItem(0, name);
+						ObjectItem obj = new ObjectItem(name, ean);
+						obj.bought = true;
 						mAdapter.adObject(obj);
-						doRefresh();
+						mAdapter.notifyDataSetChanged();
+						mSwipeLayout.setRefreshing(false);
+						//doRefresh();
 					}
 					
 				}
