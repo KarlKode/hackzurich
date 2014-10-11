@@ -44,13 +44,15 @@ class Recipe(db.Model):
         db.session.add(ri)
 
     def to_json(self, inventory=None):
+        ingredients = list(map(lambda i: i.to_json(inventory), self.ingredients))
         return {
             'id': self.id,
             'title': self.title,
             'images': self.images,
             'difficulty': self.difficulty,
             'duration': self.duration,
-            'ingredients': list(map(lambda i: i.to_json(inventory), self.ingredients)),
+            'ingredients': ingredients,
+            'missing': sum(1 for i in ingredients if i['missing']),
             'steps': list(map(lambda s: s.to_json(), self.steps))
         }
 
