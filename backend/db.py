@@ -15,8 +15,8 @@ class RecipeIngredients(db.Model):
     amount = db.Column(db.String(500))
     unit = db.Column(db.String(500))
 
-    recipe = db.relationship('Recipe', backref='recipe_ingredients')
-    ingredient = db.relationship('Ingredient', backref='recipe_ingredients')
+    recipe = db.relationship('Recipe', backref='recipe_ingredients', lazy='joined')
+    ingredient = db.relationship('Ingredient', backref='recipe_ingredients', lazy='joined')
 
     def __init__(self, recipe=None, ingredient=None, amount=None, unit=None):
         if not recipe:
@@ -77,7 +77,7 @@ class Recipe(db.Model):
         }
 
     def to_json_small(self, inventory=None):
-        ingredients = list(i.to_json(inventory) for i in self.ingredients)
+        ingredients = list(map(to_json, self.ingredients or []))
         return {
             'id': self.id,
             'title': self.title,

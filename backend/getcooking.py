@@ -173,9 +173,8 @@ def recipe_list():
     inventory = Inventory.query.first()
     if not inventory:
         abort(400)
-    recipes = db.session.query(Recipe).join(Recipe.recipe_ingredients).join(RecipeIngredients.ingredient)
-    recipe_list = list(o.to_json_small(inventory) for o in recipes.all())
-    return jsonify(recipes=sorted(recipe_list, key=lambda x: x['missing']))
+    recipes = list(o.to_json_small(inventory) for o in Recipe.query.all())
+    return jsonify(recipes=sorted(recipes, key=lambda x: x['missing']))
 
 
 @app.route('/recipe', methods=['POST'])
