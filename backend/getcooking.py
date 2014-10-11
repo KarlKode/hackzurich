@@ -1,4 +1,8 @@
 import logging
+from xml.etree import ElementTree
+from evernote.api.client import EvernoteClient
+from evernote.edam.notestore.ttypes import NoteFilter, NotesMetadataResultSpec
+from evernote.edam.type.ttypes import Tag
 from flask import Flask, jsonify, request, abort
 from flask.ext import admin
 from flask.ext.admin.contrib import sqla
@@ -222,6 +226,61 @@ def recipe_details(recipe_id):
     inventory = current_inventory()
     recipe = Recipe.query.get_or_404(recipe_id)
     return jsonify(recipe=recipe.to_json(inventory))
+
+
+@app.route('/parsereceipts')
+def parse_receipts():
+    client = EvernoteClient(token=app.config['EVERNOTE_DEV_TOKEN'], sandbox=False)
+    user_store = client.get_user_store()
+    note_store = client.get_note_store()
+    notebooks = note_store.listNotebooks()
+
+    notebook_guid = None
+    for notebook in notebooks:
+        if notebook.name == app.config['NOTEBOOK']:
+            notebook_guid = notebook.guid
+
+    if not notebook_guid:
+        print 'Notebook not found'
+        return
+
+    notebook_filter = NoteFilter()
+    notebook_filter.guid = notebook_guid
+    result_spec = NotesMetadataResultSpec(includeTitle=True, includeTagGuids=True)
+    notes = note_store.findNotesMetadata(app.config['EVERNOTE_DEV_TOKEN'], notebook_filter, 0, 40000, result_spec)
+
+    tags = note_store.listTags()
+    tag_guid = None
+    for tag in tags:
+        if tag.name == app.config['PAID_TAG']:
+            tag_guid = tag.guid
+            break
+
+    if not tag_guid:
+        tag = Tag()
+        tag.name = app.config['PAID_TAG']
+        tag = note_store.createTag(tag)
+        tag_guid = tag.guid
+
+    def update_inventory(values):
+        for title, weight in values:
+            # TODO: Weight cutoff
+            result = db.engine.execute('SELECT id, title, levenstein(?, ingredients.title) AS distance FROM ingredients WHERE levenstein(?, ingredients.title) < 5', (title, title))
+            print result
+
+    for note_title in notes.notes:
+        note = note_store.getNote(note_title.guid, False, True, True, True)
+        if tag_guid in note.tagGuids:
+            continue
+        for resource in note.resources:
+            if not resource.recognition:
+                continue
+            root = ElementTree.fromstringlist(resource.recognition.body)
+            for recognitions in root:
+                values = [(v.text, v.attrib['w']) for v in recognitions]
+                update_inventory(values)
+        note.tagGuids = [tag_guid]
+        #note_store.updateNote(note)
 
 
 @app.after_request
