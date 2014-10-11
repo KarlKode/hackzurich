@@ -65,7 +65,7 @@
 	%>
                <div class="checkbox  radio-primary">
                     <label>
-                        <input type="checkbox" data-ean="<%=ingredient.ean %>" data-amount="<%=ingredient.amount %>" data-unit="<%=ingredient.unit %>" class="ingredient" <% if(ingredient.missing == true){%>
+                        <input type="checkbox" data-id="<%=ingredient.id %>" data-amount="<%=ingredient.amount %>" data-unit="<%=ingredient.unit %>" class="ingredient" <% if(ingredient.missing == true){%>
                         	checked
                         <% } %>> <%=ingredient.title %>
                       

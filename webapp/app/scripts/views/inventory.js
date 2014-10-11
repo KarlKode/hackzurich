@@ -32,7 +32,7 @@ define([
             var selectize=this.$el.find('.add_item')[0].selectize;
             selectize.close(); 
             var items = _.map(selectize.getValue().split(','),function(x){
-                return {ean:x};
+                return {id:x};
             });
             var self =this;
             $.ajax({
@@ -56,7 +56,7 @@ define([
             var self = this;
             $.ajax({
                 contentType: 'application/json',
-                data: JSON.stringify({inventory:[{ean:$(e.target).closest('a').data('ean')}]}),
+                data: JSON.stringify({inventory:[{id:$(e.target).closest('a').data('id')}]}),
                 dataType: 'json',
                 success: function(data){
                     self.model.fetch();
@@ -77,23 +77,21 @@ define([
 this.$el.find('.add_item').selectize({
     persist: false,
     maxItems: null,
-    valueField: 'ean',
+    valueField: 'id',
     labelField: 'title',
-    searchField: ['title', 'ean'], 
+    searchField: ['title', 'id'], 
     render: {
         item: function(item, escape) {
-            return '<div>' +
-              (item.ean ? '<span class="email">' + escape(item.ean) + '</span> ' : '') +
+            return '<div>' + 
                 (item.title ? '<span class="name">' + escape(item.title) + '</span>' : '') +
               
             '</div>';
         },
         option: function(item, escape) {
-            var label = item.ean || item.title;
-            var caption = item.ean ? item.title : null;
+            var label = item.title || item.id;
+            var caption = item.id ? item.title : null;
             return '<div>' +
-                '<b>' + escape(label) + '</b> ' +
-                (caption ? '<span class="caption">' + escape(caption) + '</span>' : '') +
+                '<b >' + escape(label) + '</b> ' + 
             '</div>';
         }
     },
@@ -113,7 +111,10 @@ this.$el.find('.add_item').selectize({
         return false;
     },
       load: function(query, callback) {
-        if (!query.length) return callback();
+        if (!query.length){
+            return callback([]);
+
+        }
         $.ajax({
             url: window.base_url+'/ingredient',
             type: 'GET',
