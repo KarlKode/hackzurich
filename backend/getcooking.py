@@ -209,6 +209,7 @@ admin.add_view(sqla.ModelView(Step, db.session))
 admin.add_view(sqla.ModelView(ShoppingList, db.session))
 admin.add_view(sqla.ModelView(Inventory, db.session))
 admin.add_view(sqla.ModelView(RecipeIngredients, db.session))
+admin.add_view(sqla.ModelView(InventoryIngredients, db.session))
 
 
 if __name__ == '__main__':
