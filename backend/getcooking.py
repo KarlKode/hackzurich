@@ -21,7 +21,7 @@ def hello_world():
     return 'GET /shopping_list<br>POST /inventory<br>GET /recipes'
 
 
-@app.route('/install')
+@app.route('/installaaaaaaaa')
 def install():
     db.drop_all()
     db.create_all()
