@@ -268,7 +268,7 @@ def parse_receipts():
             result = db.engine.execute('SELECT id, title, levenstein(?, ingredients.title) AS distance FROM ingredients WHERE levenstein(?, ingredients.title) < 5', (title, title))
             print result
 
-    notes = []
+    receipts = []
 
     for note_title in notes.notes:
         note = note_store.getNote(note_title.guid, False, True, True, True)
@@ -282,9 +282,9 @@ def parse_receipts():
                 values = [(v.text, v.attrib['w']) for v in recognitions]
                 update_inventory(values)
         note.tagGuids = [tag_guid]
-        notes.append(note.guid)
+        receipts.append(note.guid)
         #note_store.updateNote(note)
-    return jsonify(notes=notes)
+    return jsonify(receipts=receipts)
 
 
 @app.after_request
