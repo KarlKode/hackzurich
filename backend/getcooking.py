@@ -61,7 +61,7 @@ def shopping_list():
         db.session.add(sl)
         db.session.commit()
     else:
-        sl = ShoppingList.query.last()
+        sl = ShoppingList.query.order_by(ShoppingList.id.desc()).first()
     return jsonify(items=list(map(lambda i: i.to_json(), sl.ingridients)))
 
 
