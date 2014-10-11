@@ -3,6 +3,7 @@ from flask.ext import admin
 from flask.ext.admin.contrib import sqla
 from flask.ext.admin.contrib.sqla.ajax import QueryAjaxModelLoader
 import requests
+from sqlalchemy.exc import DataError
 from sqlalchemy.orm.exc import NoResultFound
 
 from flask.ext.cors import CORS
@@ -50,7 +51,10 @@ def load():
             # Is one of the products ean codes already in the database?
             ean = None
             for ean_code in eans:
-                ean = EAN.query.get(ean_code)
+                try:
+                    ean = EAN.query.get(ean_code)
+                except DataError:
+                    pass
                 if ean:
                     break
             if ean:
