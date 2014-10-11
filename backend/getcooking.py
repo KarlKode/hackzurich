@@ -217,6 +217,12 @@ class RecipeIngredientsAdmin(sqla.ModelView):
     }
 
 
+class ShoppingListIngredientsAdmin(sqla.ModelView):
+    form_ajax_refs = {
+        'ingredient_id': QueryAjaxModelLoader('ingredient', db.session, Ingredient, fields=['title'], page_size=10),
+    }
+
+
 class InventoryIngredientsAdmin(sqla.ModelView):
     form_ajax_refs = {
         'ingredient_id': QueryAjaxModelLoader('ingredient', db.session, Ingredient, fields=['title'], page_size=10),
@@ -224,6 +230,7 @@ class InventoryIngredientsAdmin(sqla.ModelView):
 
 
 admin.add_view(RecipeIngredientsAdmin(RecipeIngredients, db.session))
+admin.add_view(ShoppingListIngredientsAdmin(ShoppingListIngredients, db.session))
 admin.add_view(InventoryIngredientsAdmin(InventoryIngredients, db.session))
 
 
