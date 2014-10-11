@@ -95,25 +95,34 @@ def ingredient_details(ean):
     return jsonify(ingredient=ingredient.to_json())
 
 
+def delete_shoppinglist():
+    data = request.get_json(force=True)
+    if not 'ingredients' in data:
+        abort(400)
+    eans = []
+    ids_remove = []
+    for item in data['ingredients']:
+        if 'id' in item:
+            ids_remove.append(item['id'])
+        else:
+            eans.append(item['ean'])
+    ids = db.session.query(EAN.ingredient_id).filter(EAN.ean.in_(eans)).all()
+    ids = [id[0] for id in ids] + ids_remove
+    db.session.query(ShoppingListIngredients).filter(
+        ShoppingListIngredients.ingredient_id.in_(ids_remove)).delete(
+        synchronize_session='fetch')
+    db.session.commit()
+    return jsonify(ok=True)
+
+
+@app.route('/shopping_list/delete', methods=['POST'])
+def shopping_list_del():
+    return delete_shoppinglist()
+
 @app.route('/shopping_list', methods=['GET', 'POST', 'DELETE'])
 def shopping_list_details():
     if request.method == 'DELETE':
-        data = request.get_json(force=True)
-        if not 'ingredients' in data:
-            abort(400)
-        eans = []
-        ids_remove = []
-        for item in data['ingredients']:
-            if 'id' in item:
-                ids_remove.append(item['id'])
-            else:
-                eans.append(item['ean'])
-        ids = db.session.query(EAN.ingredient_id).filter(EAN.ean.in_(eans)).all()
-        ids = [id[0] for id in ids] + ids_remove
-        db.session.query(ShoppingListIngredients).filter(ShoppingListIngredients.ingredient_id.in_(ids_remove)).delete(
-            synchronize_session='fetch')
-        db.session.commit()
-        return jsonify(ok=True)
+        return delete_shoppinglist()
     elif request.method == 'POST':
         shopping_list = ShoppingList.query.first()
         data = request.get_json(force=True)
