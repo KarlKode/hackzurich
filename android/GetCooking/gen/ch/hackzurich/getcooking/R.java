@@ -1473,7 +1473,7 @@ containing a value of this type.
         public static final int action_menu_divider=0x7f090028;
         public static final int action_menu_presenter=0x7f090029;
         public static final int action_mode_close_button=0x7f090036;
-        public static final int action_settings=0x7f09005d;
+        public static final int action_settings=0x7f09005e;
         public static final int activity_chooser_view_content=0x7f090037;
         public static final int always=0x7f09001e;
         public static final int beginning=0x7f090023;
@@ -1482,6 +1482,7 @@ containing a value of this type.
         public static final int buyButton=0x7f09000a;
         public static final int buy_now=0x7f09000f;
         public static final int buy_with_google=0x7f09000e;
+        public static final int checkBox1=0x7f09005d;
         public static final int checkbox=0x7f09003f;
         public static final int classic=0x7f090011;
         public static final int collapseActionView=0x7f090020;

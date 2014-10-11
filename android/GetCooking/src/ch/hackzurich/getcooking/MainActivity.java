@@ -1,25 +1,11 @@
 package ch.hackzurich.getcooking;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.util.EntityUtils;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
+import ch.hackzurich.getcooking.DataLoader.IngredientNameListener;
+import ch.hackzurich.getcooking.DataLoader.ShoppingListLoaderListener;
 import android.content.Intent;
 import android.graphics.Color;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener;
@@ -30,6 +16,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Toast;
 
 public class MainActivity extends ActionBarActivity implements OnRefreshListener {
 
@@ -37,6 +24,8 @@ public class MainActivity extends ActionBarActivity implements OnRefreshListener
 	private SwipeRefreshLayout mSwipeLayout;
 	private ListView mListViewItems;
 	private ArrayAdapterItem mAdapter;
+
+	public static int REQUEST_SCAN = 1;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -75,9 +64,10 @@ public class MainActivity extends ActionBarActivity implements OnRefreshListener
 			@Override
 			public void onClick(View v) {
 				Intent intent = new Intent(MainActivity.this, ScanActivity.class);
-				MainActivity.this.startActivity(intent);
+				startActivityForResult(intent, REQUEST_SCAN);
 			}
 		});
+
 		doRefresh();
 	}
 
@@ -105,89 +95,50 @@ public class MainActivity extends ActionBarActivity implements OnRefreshListener
 		doRefresh();
 	}
 
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+
+		if(resultCode == RESULT_OK && requestCode == REQUEST_SCAN) {
+			mSwipeLayout.setRefreshing(true);
+			String cleanedBarcode = data.getStringExtra("cleanedBarcode");
+			DataLoader dl = new DataLoader();
+			dl.getIngredientName(new IngredientNameListener() {
+				@Override
+				public void onIngredientNameAvailable(String name) {
+					if(name == null) {
+						Toast.makeText(getApplicationContext(), "Error while getting the data from the server, please try later", Toast.LENGTH_LONG).show();
+						mSwipeLayout.setRefreshing(false);
+					} else {
+						ObjectItem obj = new ObjectItem(0, name);
+						mAdapter.adObject(obj);
+						doRefresh();
+					}
+					
+				}
+			}, cleanedBarcode);
+			
+		}
+
+	}
+
 	private void doRefresh() {
 		mSwipeLayout.setRefreshing(true);
-		new DownloadShoppingList().execute("http://hackzurich.me/shopping_list");
-
-	}
-
-
-	private class DownloadShoppingList extends AsyncTask<String, Void, JSONObject> {
-
-		@Override
-		protected JSONObject doInBackground(String... params) {
-			String content = getContent(params[0]);
-			if(content == null)
-				return null;
-			try {
-				JSONObject reader = new JSONObject(content);
-				return reader;
-			} catch (JSONException e) {
-				e.printStackTrace();
-				return null;
-			}
-			
-		}
-
-		@Override
-		protected void onPostExecute(JSONObject result) {
-			
-			ObjectItem[] objectItemData = null;
-			
-			try {
-				JSONArray items; items = result.getJSONArray("items");
-				objectItemData = new ObjectItem[items.length()];
-				for (int i = 0; i < items.length(); i++) {
-					JSONObject obj = items.getJSONObject(i);
-					objectItemData[i] = new ObjectItem(i, obj.getString("name"));
+		DataLoader dl = new DataLoader();
+		dl.getShoppingList(new ShoppingListLoaderListener() {
+			@Override
+			public void onShoppingListAvailable(ObjectItem[] objectItemData) {
+				if(objectItemData != null) {
+					mAdapter.data = objectItemData;
+					mSwipeLayout.setRefreshing(false);
+					mAdapter.notifyDataSetChanged();
+				} else {
+					Toast.makeText(getApplicationContext(), "Error while getting the data from the server, please try later", Toast.LENGTH_LONG).show();
+					mSwipeLayout.setRefreshing(false);
 				}
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
-			mAdapter.data = objectItemData;
-			mSwipeLayout.setRefreshing(false);
-			mAdapter.notifyDataSetChanged();
-			
-			super.onPostExecute(result);
-		}
+		});
 
-	}
-
-
-
-
-
-
-
-	private String getContent(String url) {
-		HttpResponse response = null;
-		HttpGet httpGet = null;
-		HttpClient mHttpClient = null;
-		String s = null;
-
-		try {
-			if(mHttpClient == null) {
-				HttpParams httpParams = new BasicHttpParams();
-				//HttpConnectionParams.setConnectionTimeout(httpParams, mTimoutInSeconds * 1000);
-				//HttpConnectionParams.setSoTimeout(httpParams, mTimoutInSeconds * 1000);
-				mHttpClient = new DefaultHttpClient(httpParams);
-			}
-			httpGet = new HttpGet(url);
-
-			response = mHttpClient.execute(httpGet);
-			if (response != null && response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-				s = EntityUtils.toString(response.getEntity(), "UTF-8");
-			} else {
-				s = null;
-			}
-
-		} catch (IOException e) {
-			e.printStackTrace();
-			s = null;
-		} 
-
-		return s;
 	}
 
 }

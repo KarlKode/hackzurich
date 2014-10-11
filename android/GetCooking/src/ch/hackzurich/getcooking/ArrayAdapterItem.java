@@ -1,5 +1,7 @@
 package ch.hackzurich.getcooking;
 
+import java.util.ArrayList;
+
 import android.app.Activity;
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -56,4 +58,8 @@ public class ArrayAdapterItem extends ArrayAdapter<ObjectItem> {
     	return this.data.length;
     }
 
+    public void adObject(ObjectItem item) {
+    	data = java.util.Arrays.copyOf(data, data.length + 1);
+    	data[data.length - 1] = item;
+    }
 }

@@ -1,5 +1,6 @@
 package ch.hackzurich.getcooking;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
@@ -25,10 +26,8 @@ public class ScanActivity extends ActionBarActivity implements ScanditSDKListene
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		initializeAndStartBarcodeScanning();
-		//setContentView(R.layout.activity_scan);
 		
-		// Initialize and start the bar code recognition.
+		initializeAndStartBarcodeScanning();
         
 	}
 
@@ -75,8 +74,12 @@ public class ScanActivity extends ActionBarActivity implements ScanditSDKListene
             }
         }
         
-        Toast.makeText(this, symbology + ": " + cleanedBarcode, Toast.LENGTH_LONG).show();
-		finish();
+        //Toast.makeText(this, symbology + ": " + cleanedBarcode, Toast.LENGTH_LONG).show();
+		
+        Intent returnIntent = new Intent();
+        returnIntent.putExtra("cleanedBarcode", cleanedBarcode);
+        setResult(RESULT_OK, returnIntent);     
+        finish();
 	}
 	
 	@Override
