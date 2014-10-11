@@ -114,7 +114,9 @@ class Ingredient(db.Model):
             'image': self.image,
         }
         if inventory:
-            exists = any(ingredient['id']==self.id for ingredient in inventory['ingredients'])
+            print(inventory)
+            ingredients = inventory['ingredients']
+            exists = any(ingredient['id']==self.id for ingredient in ingredients)
             data['missing'] = not exists
         return data
 
@@ -186,7 +188,7 @@ class Inventory(db.Model):
         return {
             'id': self.id,
             'user': self.user,
-            'ingredients': map(lambda i: i.to_json(), self.ingredients),
+            'ingredients': list(map(lambda i: i.to_json(), self.ingredients)),
         }
 
     def add_ingredient(self, ingredient, amount, unit):
