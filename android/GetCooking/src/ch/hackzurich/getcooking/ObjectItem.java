@@ -8,7 +8,7 @@ public class ObjectItem {
   public boolean bought;
 
   // constructor
-  public ObjectItem(String itemName, String ean, float price) {
+  public ObjectItem(String itemName, String ean) {
       this.itemName = itemName;
       this.ean = ean;
       bought = false;
