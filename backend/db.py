@@ -43,14 +43,14 @@ class Recipe(db.Model):
         ri = RecipeIngredients(self, ingredient, amount, unit)
         db.session.add(ri)
 
-    def to_json(self):
+    def to_json(self, inventory=None):
         return {
             'id': self.id,
             'title': self.title,
             'images': self.images,
             'difficulty': self.difficulty,
             'duration': self.duration,
-            'ingredients': list(map(lambda i: i.to_json(), self.ingredients)),
+            'ingredients': list(map(lambda i: i.to_json(inventory), self.ingredients)),
             'steps': list(map(lambda s: s.to_json(), self.steps))
         }
 
@@ -106,13 +106,17 @@ class Ingredient(db.Model):
     def __repr__(self):
         return '<Ingredient %r>' % self.id
 
-    def to_json(self):
-        return {
+    def to_json(self, inventory=None):
+        data = {
             'id': self.id,
             'title': self.title,
             'ean': self.ean,
             'image': self.image,
         }
+        if inventory:
+            exists = any(ingredient['id']==self.id for ingredient in inventory['ingredients'])
+            data['missing'] = not exists
+        return data
 
 
 class Step(db.Model):
