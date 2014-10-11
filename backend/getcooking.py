@@ -58,12 +58,13 @@ def load():
         products = data['products'].values()
         for product in products:
             eans = product['eans']
-            ingredient = Ingredient()
-            db.session.add(ingredient)
-            ingredient.title = product['name']
-            for ean_code in eans:
-                ingredient.add_ean(ean_code)
-            ingredient.from_product(product)
+            if len(eans)>0:
+                ingredient = Ingredient()
+                db.session.add(ingredient)
+                ingredient.title = product['name']
+                for ean_code in eans:
+                    ingredient.add_ean(ean_code)
+                ingredient.from_product(product)
             inserted += 1
         db.session.commit()
     return jsonify(success=True, imported=inserted)
