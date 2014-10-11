@@ -1,14 +1,34 @@
 from flask import Flask, jsonify
+from db import db, Recipe, Ingredient
 import settings
 
 app = Flask(__name__)
 app.config.from_object(settings)
+db.init_app(app)
 
 
 @app.route('/')
 def hello_world():
     return 'GET /shopping_list\nPOST /inventory\nGET /recipes\n'
 
+
+@app.route('/install')
+def install():
+    db.drop_all()
+    db.create_all()
+    i0 = Ingredient('tomato', 123)
+    db.session.add(i0)
+    i1 = Ingredient('onion', 124)
+    db.session.add(i1)
+    i2 = Ingredient('creme', 111)
+    db.session.add(i2)
+
+    r0 = Recipe('tomato soup', 1, 30)
+    db.session.add(r0)
+    r0.add_ingredient(i0, '1', 'crate')
+    r0.add_ingredient(i1, '1', 'cup')
+    db.session.commit()
+    return 'done'
 
 @app.route('/shopping_list')
 def shopping_list():
@@ -27,87 +47,16 @@ def inventory():
 
 @app.route('/recipes')
 def recipes():
-    recipe_list = [
-        {
-            'id': 1,
-            'title': 'tomato soup',
-            'images': ['/static/images/tomato_soup-1.png', '/static/images/tomato_soup-2.png', ],
-            'ingredients': [
-                {
-                    'id': 1,
-                    'title': 'tomato',
-                    'ean': 123,
-                    'image': None,
-                    'amount': 2,
-                    'unit': 'kg',
-                },
-                {
-                    'id': 3,
-                    'title': 'onion',
-                    'ean': 12345,
-                    'image': None,
-                    'amount': 10,
-                    'unit': 'pieces',
-                },
-            ],
-            'steps': [
-                {
-                    'id': 1,
-                    'title': 'cook the stuff',
-                    'description': 'Just put it in a pan',
-                    'image': '/static/images/step/tomato_soup-1.png',
-                },
-                {
-                    'id': 2,
-                    'title': 'serve',
-                    'description': 'Just put in on a plate',
-                    'image': '/static/images/step/tomato_soup-2.png',
-                }
-            ],
-            'duration': 45,
-            'difficulty': 1,
-        },
-        {
-            'id': 2,
-            'title': 'tomato soup 2',
-            'images': ['/static/images/tomato_soup-3.png', '/static/images/tomato_soup-4.png', ],
-            'ingredients': [
-                {
-                    'id': 1,
-                    'title': 'tomato',
-                    'ean': 123,
-                    'image': None,
-                    'amount': 1,
-                    'unit': 'kg',
-                },
-                {
-                    'id': 3,
-                    'title': 'onion',
-                    'ean': 12345,
-                    'image': None,
-                    'amount': 1,
-                    'unit': 'crate',
-                },
-            ],
-            'steps': [
-                {
-                    'id': 1,
-                    'title': 'cook the stuff again',
-                    'description': 'Just put it in a pan... Again...',
-                    'image': '/static/images/step/tomato_soup-3.png',
-                },
-                {
-                    'id': 2,
-                    'title': 'serve',
-                    'description': 'Just put in on a plate',
-                    'image': '/static/images/step/tomato_soup-2.png',
-                }
-            ],
-            'duration': 45,
-            'difficulty': 1,
-        },
-    ]
+    recipe_list = list(map(lambda o: o.to_json(), Recipe.query.all()))
+    print(Recipe.query.all())
     return jsonify(recipes=recipe_list)
+
+
+@app.route('/recipe/<int:recipe_id>')
+def recipe(recipe_id):
+    recipe_obj = Recipe.query.get_or_404(recipe_id)
+    return jsonify(recipe=recipe_obj.to_json())
+
 
 
 if __name__ == '__main__':
