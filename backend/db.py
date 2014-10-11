@@ -120,7 +120,7 @@ class Ingredient(db.Model):
         if inventory:
             print(inventory)
             ingredients = inventory['ingredients']
-            exists = any(ingredient['id']==self.id for ingredient in ingredients)
+            exists = any(ingredient['id'] == self.id for ingredient in ingredients)
             data['missing'] = not exists
         return data
 
