@@ -3,7 +3,6 @@ from flask.ext import admin
 from flask.ext.admin.contrib import sqla
 from flask.ext.admin.contrib.sqla.ajax import QueryAjaxModelLoader
 import requests
-from sqlalchemy.exc import DataError
 from sqlalchemy.orm.exc import NoResultFound
 
 from flask.ext.cors import CORS
@@ -27,6 +26,15 @@ def hello_world():
 def install():
     db.drop_all()
     db.create_all()
+    sl = ShoppingList()
+    sl.user = 'marc@marcg.ch'
+    db.session.add(sl)
+
+    inv = Inventory()
+    inv.user = 'marc@marcg.ch'
+    db.session.add(inv)
+
+    db.session.commit()
     return 'done'
 
 
@@ -160,7 +168,9 @@ def inventory_delete(id_or_ean):
 
 @app.route('/recipe', methods=['GET'])
 def recipe_list():
-    inventory = Inventory.query.first().to_json()
+    inventory = Inventory.query.first()
+    if not inventory:
+        abort(400)
     recipes = db.session.query(Recipe).join(Recipe.recipe_ingredients).join(RecipeIngredients.ingredient)
     recipe_list = list(o.to_json_small(inventory) for o in recipes.all())
     return jsonify(recipes=sorted(recipe_list, key=lambda x: x['missing']))

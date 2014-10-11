@@ -160,7 +160,7 @@ class EAN(db.Model):
 
 class Ingredient(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(500))
+    title = db.Column(db.String(500), index=True)
     image = db.Column(db.String(500))
     description = db.Column(db.Text)
     price = db.Column(db.Integer)
