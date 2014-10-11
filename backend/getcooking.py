@@ -64,6 +64,7 @@ def load():
             ingredient.from_product(product)
             ingredients.append(ingredient)
         db.session.commit()
+        break
     return jsonify(success=True, imported=len(ingredients))
 
 
