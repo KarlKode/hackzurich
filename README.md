@@ -102,7 +102,7 @@ Migros API.
 
 .h3 POST /inventory
 
-.h3 DELETE /inventory
+.h3 DELETE /inventory/<ID or EAN>
 
 .h3 GET /recipe
 

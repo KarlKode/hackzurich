@@ -1,0 +1,102 @@
+<h2><%=recipe.title%></h2> 
+<div class="row">
+<div class="  col-md-8"> 
+<img class="well" src="http://localhost:6001/roasted-eggplant-soup-recipe1.jpg" style="max-width:100%" >
+  </div>
+<div class=" col-md-4"> 
+<div class="well">
+<h3 style="margin-top:0">Ingredients</h3>
+ 
+<div class="list-group ">
+<% _.each(recipe.ingredients, function (ingredient) { %>
+  
+   <div class="list-group-item ">
+        <div class="row-picture">
+            <img class="circle" src="http://lorempixel.com/56/56/people/1" alt="icon">
+        </div>
+        <div class="row-content">
+            <h4 class="list-group-item-heading"><%=ingredient.title %>
+  <% if(ingredient.missing == true){%>
+                        	<span class="label label-danger">Missing</span>
+                        <% } %>
+            </h4>
+            <p class="list-group-item-text"><%=ingredient.amount %> <%=ingredient.unit %></p>
+        </div>
+    </div> 
+
+ 
+<% }) %> 
+
+   </div>
+   <button  class="btn btn-success btn-lg btn-block cook_this" style="margin-top:20px;margin-bottom:0;">Cook this recipe</button>
+ 
+ 
+</div>
+ </div>
+  </div>
+
+<div class="row">
+<div class=" col-md-12"> 
+   <div class="well"> 
+<h3 style="margin-top:0;margin-bottom:22px">How to cook the meal</h3> 
+<% _.each(recipe.steps, function (step,i) { %>
+
+    <img class="circle" src="http://lorempixel.com/56/56/people/1" alt="icon" style="float:left; margin-right:12px">
+            <h4 style="margin-top:0"><%=step.title %></h4>
+            <p ><%=step.description %></p>
+ 
+    <div class="list-group-separator"></div>
+    <% if(i!=recipe.steps.length-1){ %>
+    <hr>
+    <% } %>
+<% }) %> 
+    </div> 
+    </div> 
+  </div>
+  <div class="modal cook_recipe">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Ingredients</h4>
+            </div>
+            <div class="modal-body">
+<% _.each(recipe.ingredients, function (ingredient) {
+	%>
+               <div class="checkbox  radio-primary">
+                    <label>
+                        <input type="checkbox" data-ean="<%=ingredient.ean %>" data-amount="<%=ingredient.amount %>" data-unit="<%=ingredient.unit %>" class="ingredient" <% if(ingredient.missing == true){%>
+                        	checked
+                        <% } %>> <%=ingredient.title %>
+                      
+                    </label>
+                </div>
+<% }) %> 
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary add_to_list">Add to shopping list</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+  <div class="modal done">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Ready to GO</h4>
+            </div>
+            <div class="modal-body" style="text-align:center">
+ 
+<i style="font-size:200px" class="fa fa-shopping-cart"></i>
+            </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-success done_shopping" data-dismiss="modal">Close</button> 
+            </div>
+        </div>
+    </div>
+</div>
