@@ -122,7 +122,9 @@ class EAN(db.Model):
 
     ingredient = db.relationship('Ingredient', backref='eans')
 
-    def __init__(self, ean, ingredient):
+    def __init__(self, ean=None, ingredient=None):
+        if not self.ean:
+            return
         self.ean = ean
         self.ingredient = ingredient
 
@@ -299,7 +301,7 @@ class Inventory(db.Model):
     user = db.Column(db.String(100))
     ingredients = association_proxy('inventory_ingredients', 'ingredient')
 
-    def __init__(self, user):
+    def __init__(self, user=None):
         self.user = user
 
     def __repr__(self):
