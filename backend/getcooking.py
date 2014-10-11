@@ -32,7 +32,6 @@ def install():
 
 @app.route('/load')
 def load():
-    ingredients = []
     # Get total hits
     base_url = url = 'https://test-web-api.migros.ch/eth-hack/products?key=k0DFQajkP8AnGMF9&limit=%d&offset=%d'
     r = requests.get(base_url % (0, 0))
@@ -40,32 +39,25 @@ def load():
     if not 'total_hits' in data:
         abort(500)
     total = int(data['total_hits'])
-    while len(ingredients) < total:
-        r = requests.get(base_url % (100, len(ingredients)))
+    inserted = 0
+    while inserted < total:
+        r = requests.get(base_url % (100, inserted))
         data = r.json()
         if not 'products' in data:
             abort(500)
         products = data['products'].values()
         for product in products:
             eans = product['eans']
-            # Is one of the products ean codes already in the database?
-            ean = None
+            ingredient = Ingredient()
+            db.session.add(ingredient)
+            ingredient.title = product['name']
             for ean_code in eans:
-                ean = EAN.query.filter_by(ean=int(ean_code)).first()
-                if ean:
-                    break
-            if ean:
-                ingredient = ean.ingredient
-                for ean_code in eans:
-                    ingredient.add_ean(ean_code)
-            else:
-                ingredient = Ingredient(product['name'], eans)
-                db.session.add(ingredient)
+                ingredient.add_ean(ean_code)
             ingredient.from_product(product)
-            ingredients.append(ingredient)
+            inserted += 1
         db.session.commit()
         break
-    return jsonify(success=True, imported=len(ingredients))
+    return jsonify(success=True, imported=inserted)
 
 
 @app.route('/ingredient')

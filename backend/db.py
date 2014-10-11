@@ -170,15 +170,6 @@ class Ingredient(db.Model):
     shopping_lists = association_proxy('shopping_list_ingredients', 'shopping_list')
     inventories = association_proxy('inventory_ingredients', 'inventory')
 
-    def __init__(self, title=None, eans=None, image=None):
-        if not title:
-            return
-        self.title = title
-        if eans:
-            for ean in eans:
-                self.add_ean(ean)
-        self.image = image
-
     def __str__(self):
         return self.title
 
@@ -201,12 +192,13 @@ class Ingredient(db.Model):
             data['missing'] = not exists
         return data
 
-    def add_ean(self, ean):
+    def add_ean(self, ean_code):
         try:
-            ean = EAN.query.filter_by(ean=ean).one()
+            ean = EAN.query.filter_by(ean=ean_code).one()
             ean.ingredient = self
         except NoResultFound:
-            ean = EAN(ean, self)
+            ean = EAN()
+            ean.ean = ean_code
             db.session.add(ean)
 
     def from_product(self, product):
