@@ -1,5 +1,5 @@
-from flask import Flask, jsonify
-from db import db, Recipe, Ingredient
+from flask import Flask, jsonify, request
+from db import db, Recipe, Ingredient, Inventory
 import settings
 
 app = Flask(__name__)
@@ -28,6 +28,10 @@ def install():
     r0.add_ingredient(i0, '1', 'crate')
     r0.add_ingredient(i1, '1', 'cup')
     db.session.commit()
+    inventory0 = Inventory("user@user.com")
+    db.session.add(inventory0)
+    inventory0.add_ingredient(i1, '1', 'cup')
+    db.session.commit()
     return 'done'
 
 
@@ -51,9 +55,14 @@ def shopping_list():
     return jsonify(items=l)
 
 
-@app.route('/inventory', methods=['POST'])
+@app.route('/inventory', methods=['GET','POST'])
 def inventory():
-    return jsonify(success=True, error=None)
+    if request.method =='POST':
+        return jsonify(success=True, error=None)
+    else:
+        inventory_list = list(map(lambda o: o.to_json(), Inventory.query.all()))
+        return jsonify(inventory=inventory_list[0])
+
 
 
 @app.route('/recipes')
