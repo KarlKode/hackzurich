@@ -66,27 +66,35 @@ def shopping_list():
     return jsonify(items=list(map(lambda i: i.to_json(), sl.ingridients)))
 
 
+def get_inventory():
+    inventory_list = list(map(lambda o: o.to_json(), Inventory.query.all()))
+    inventory = inventory_list[0]
+    return inventory
+
+
 @app.route('/inventory', methods=['GET','POST'])
 def inventory():
     if request.method =='POST':
         return jsonify(success=True, error=None)
     else:
-        inventory_list = list(map(lambda o: o.to_json(), Inventory.query.all()))
-        return jsonify(inventory=inventory_list[0])
+        inventory = get_inventory()
+        return jsonify(inventory=inventory)
 
 
 
 @app.route('/recipes')
 def recipes():
-    recipe_list = list(map(lambda o: o.to_json(), Recipe.query.all()))
+    inventory = get_inventory()
+    recipe_list = list(map(lambda o: o.to_json(inventory), Recipe.query.all()))
     print(Recipe.query.all())
     return jsonify(recipes=recipe_list)
 
 
 @app.route('/recipe/<int:recipe_id>')
 def recipe(recipe_id):
+    inventory = get_inventory()
     recipe_obj = Recipe.query.get_or_404(recipe_id)
-    return jsonify(recipe=recipe_obj.to_json())
+    return jsonify(recipe=recipe_obj.to_json(inventory))
 
 
 
