@@ -1,9 +1,9 @@
-package ch.hackzurich.getcooking;
+package me.hackzurich.getcookingnew;
 
 
 
-import ch.hackzurich.getcooking.DataLoader.IngredientNameListener;
-import ch.hackzurich.getcooking.DataLoader.ShoppingListLoaderListener;
+import me.hackzurich.getcookingnew.DataLoader.IngredientNameListener;
+import me.hackzurich.getcookingnew.DataLoader.ShoppingListLoaderListener;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
