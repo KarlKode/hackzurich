@@ -265,7 +265,7 @@ def parse_receipts():
     def update_inventory(values):
         for title, weight in values:
             # TODO: Weight cutoff
-            result = db.engine.execute('SELECT id, title, levenstein(%s, ingredients.title) AS distance FROM ingredients WHERE levenstein(%s, ingredients.title) < 5', (title, title))
+            result = db.engine.execute('SELECT id, title, levenstein(%s, ingredients.title) AS distance FROM ingredient WHERE levenstein(%s, ingredients.title) < 5', (title, title))
             print result
 
     receipts = []
