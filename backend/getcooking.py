@@ -31,7 +31,8 @@ def install():
     r0.add_ingredient(i0, '1', 'crate')
     r0.add_ingredient(i1, '1', 'cup')
 
-    s0 = ShoppingList(r0, [i3])
+    s0 = ShoppingList(r0)
+    s0.add_ingredient(i3, '1', 'foo')
     db.session.add(s0)
     
     inventory0 = Inventory("user@user.com")
@@ -61,7 +62,7 @@ def shopping_list():
         db.session.add(sl)
         db.session.commit()
     else:
-        sl = ShoppingList.query.order_by(ShoppingList.id.desc()).first()
+        sl = ShoppingList.query.order_by(ShoppingList.id.desc()).get_or_404()
     return jsonify(items=list(map(lambda i: i.to_json(), sl.ingridients)))
 
 
