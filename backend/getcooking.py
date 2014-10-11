@@ -242,7 +242,7 @@ def parse_receipts():
 
     if not notebook_guid:
         print 'Notebook not found'
-        return
+        return 'Nwotebook not found'
 
     notebook_filter = NoteFilter()
     notebook_filter.guid = notebook_guid
