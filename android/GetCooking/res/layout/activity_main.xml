@@ -10,31 +10,12 @@
         android:id="@+id/swipe_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/buttonScan" >
+        android:layout_above="@+id/textViewTotal" >
 
-        <LinearLayout
+        <ListView
+            android:id="@+id/listView1"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_above="@+id/buttonScan"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentTop="true"
-            android:orientation="vertical" >
-
-            <Button
-                android:id="@+id/buttonCheckout"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="right"
-                android:text="Check Out 20 CHF" />
-
-            <ListView
-                android:id="@+id/listView1"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_above="@+id/buttonCheckout"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentTop="true" />
-        </LinearLayout>
+            android:layout_height="wrap_content" />
     </android.support.v4.widget.SwipeRefreshLayout>
 
     <Button
@@ -42,8 +23,18 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:text="Scan" />
+
+    <TextView
+        android:id="@+id/textViewTotal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/buttonScan"
+        android:layout_alignRight="@+id/buttonScan"
+        android:text="Total: 20 CHF" />
 
 </RelativeLayout>

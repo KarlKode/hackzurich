@@ -80,5 +80,4 @@ public class ArrayAdapterItem extends ArrayAdapter<ObjectItem> {
     }
     
     
-    
 }
