@@ -17,6 +17,8 @@ class RecipeIngredients(db.Model):
     def __init__(self, recipe, ingredient, amount, unit):
         self.recipe = recipe
         self.ingredient = ingredient
+        self.amount = amount
+        self.unit = unit
 
 
 class Recipe(db.Model):
@@ -79,6 +81,12 @@ class InventoryIngredients(db.Model):
 
     inventory = db.relationship('Inventory', backref='inventory_ingredients')
     ingredient = db.relationship('Ingredient', backref='inventory_ingredients')
+
+    def __init__(self, inventory, ingredient, amount, unit):
+        self.inventory = inventory
+        self.ingredient = ingredient
+        self.amount = amount
+        self.unit = unit
 
 
 class Ingredient(db.Model):
@@ -162,7 +170,7 @@ class ShoppingList(db.Model):
 class Inventory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user = db.Column(db.String(100))
-    ingredients = association_proxy('shopping_list_ingredients', 'ingredient')
+    ingredients = association_proxy('inventory_ingredients', 'ingredient')
 
     def __init__(self):
         pass
@@ -174,5 +182,12 @@ class Inventory(db.Model):
         return {
             'id': self.id,
             'user': self.user,
-            'ingredients': map(lambda i: i.to_json(), self.ingredients.all()),
+            'ingredients': map(lambda i: i.to_json(), self.ingredients),
         }
+
+    def add_ingredient(self, ingredient, amount, unit):
+        ri = InventoryIngredients(self, ingredient, amount, unit)
+        db.session.add(ri)
+
+    def __init__(self, user):
+        self.user = user
