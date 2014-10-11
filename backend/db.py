@@ -140,6 +140,7 @@ class Ingredient(db.Model):
             abort(404)
         ingredient = Ingredient(data['name'], ean, data['image']['original'])
         db.session.add(ingredient)
+        return ingredient
 
 
 class Step(db.Model):
