@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
 import android.widget.TextView;
 
 // here's our beautiful adapter
@@ -46,8 +47,16 @@ public class ArrayAdapterItem extends ArrayAdapter<ObjectItem> {
 
         // get the TextView and then set the text (item name) and tag (item ID) values
         TextView textViewItem = (TextView) convertView.findViewById(R.id.textViewItem);
+        CheckBox checkBoxItem = (CheckBox) convertView.findViewById(R.id.checkBoxItem);
+        
         textViewItem.setText(objectItem.itemName);
-        textViewItem.setTag(objectItem.itemId);
+        //textViewItem.setTag(objectItem.itemId);
+        if(objectItem.bought) {
+        	checkBoxItem.setChecked(true);
+        } else {
+        	checkBoxItem.setChecked(false);
+        }
+        
 
         return convertView;
 
@@ -59,7 +68,17 @@ public class ArrayAdapterItem extends ArrayAdapter<ObjectItem> {
     }
 
     public void adObject(ObjectItem item) {
+    	for (int i = 0; i < data.length; i++) {
+			if(data[i].ean.equalsIgnoreCase(item.ean)) {
+				data[i].bought = true;
+				return;
+			}
+		}
+    	
     	data = java.util.Arrays.copyOf(data, data.length + 1);
     	data[data.length - 1] = item;
     }
+    
+    
+    
 }

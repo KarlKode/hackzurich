@@ -58,11 +58,11 @@ public class DataLoader {
 
 			try {
 				JSONArray items;
-				items = result.getJSONArray("items");
+				items = result.getJSONArray("ingredients");
 				objectItemData = new ObjectItem[items.length()];
 				for (int i = 0; i < items.length(); i++) {
 					JSONObject obj = items.getJSONObject(i);
-					objectItemData[i] = new ObjectItem(i, obj.getString("name"));
+					objectItemData[i] = new ObjectItem(obj.getString("title"), obj.getString("ean"));
 				}
 			} catch (JSONException e) {
 				objectItemData = null;
@@ -93,7 +93,7 @@ public class DataLoader {
 		new DownloadIngredientName(listener).execute("http://hackzurich.me/ingredient/" + barCode);
 	}
 	public interface IngredientNameListener {
-		public void onIngredientNameAvailable(String name);
+		public void onIngredientNameAvailable(String name, String ean);
 	}
 	private class DownloadIngredientName extends AsyncTask<String, Void, JSONObject> {
 
@@ -125,13 +125,14 @@ public class DataLoader {
 			try {
 				JSONObject obj = result.getJSONObject("ingredient");
 				String name = obj.getString("title");
-				listener.onIngredientNameAvailable(name);
+				String ean = obj.getString("ean");
+				listener.onIngredientNameAvailable(name, ean);
 			} catch (JSONException e) {
 				e.printStackTrace();
-				listener.onIngredientNameAvailable(null);
+				listener.onIngredientNameAvailable(null, null);
 			} catch (Exception e) {
 				e.printStackTrace();
-				listener.onIngredientNameAvailable(null);
+				listener.onIngredientNameAvailable(null, null);
 			}
 			
 
