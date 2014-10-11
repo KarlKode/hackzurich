@@ -7,13 +7,17 @@ define([
     'use strict';
 
     var RecipeModel = Backbone.Model.extend({
-        base_url: 'http://hackzurich.me/recipe/',
-        url: function () {
-        	return this.base_url+this.id;
+        base_url: '/recipe/',
+        url: function () { 
+        	return window.base_url+this.base_url+this.id;
         },
 
 	    parse: function(data) {
-	        return data.recipe;
+	    	if(data.recipe){
+	        	return data.recipe;
+	        }else{
+	        	return data;
+	        }
 	    }
  
     });

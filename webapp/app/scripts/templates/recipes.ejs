@@ -12,7 +12,11 @@
  <img   src="http://testmayihavethatrecipe.files.wordpress.com/2012/10/roasted-eggplant-soup-recipe1.jpg" style="max-width:100%" >
 
       <div class="caption">
-        <h3><%=recipe.title%></h3> 
+        <h3><%=recipe.title%>
+  <% if(recipe.missing >0){%>
+                        	<span class="label label-danger"><%=recipe.missing%></span>
+                        <% } %>
+        </h3> 
         <p><a href="#recipes/<%=recipe.id%>" class="btn btn-success btn-block" role="button">Open Recipe</a>  </p>
       </div>
     </div>

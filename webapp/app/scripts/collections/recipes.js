@@ -10,7 +10,9 @@ define([
     var RecipesCollection = Backbone.Collection.extend({
         model: RecipeModel,
 
-        url: 'http://hackzurich.me/recipes',
+        url: function (argument) {
+            return         window.base_url+'/recipes';
+        },
 
 	    parse: function(data) {
 	        return data.recipes;

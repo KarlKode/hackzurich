@@ -2,12 +2,12 @@
 
 <div class="row">
   <div class="col-md-12">
-<% _.each(recipes, function (recipe) { %>
+<% _.each(ingredients, function (ingredient) { %>
     <div class="well">
  
       <div class="caption">
-      <a href="#recipes/<%=recipe.id%>" class="btn btn-danger" role="button" style="float: right;margin: 0;margin-top: -3px;">Remove</a>
-        <h3 style="margin:0"><%=recipe.title%></h3> 
+      <a href="#recipes/<%=ingredient.ean%>" class="btn btn-danger" role="button" style="float: right;margin: 0;margin-top: -3px;">Remove</a>
+        <h3 style="margin:0"><%=ingredient.title%></h3> 
       </div>
     
   </div>

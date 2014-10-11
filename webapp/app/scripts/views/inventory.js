@@ -6,8 +6,8 @@ define([
     'backbone',
     'views/base',
     'templates',
-    'collections/recipes',
-], function ($, _, Backbone, BaseView, JST, RecipesCollection) {
+    'models/inventory',
+], function ($, _, Backbone, BaseView, JST, Inventory) {
     'use strict';
 
     var InventoryView = BaseView.extend({
@@ -15,15 +15,15 @@ define([
  
  
         initialize: function () {
-            this.collection = new RecipesCollection();
-            this.listenTo(this.collection, 'reset', this.render);
+            this.model = new Inventory();
+            this.listenTo(this.model, 'change', this.render);
             BaseView.prototype.initialize.call(this);
-            this.collection.fetch({reset:true});
+            this.model.fetch({reset:true});
 
         },
 
         get_data: function(){
-            return {recipes:this.collection.toJSON()};
+            return {ingredients:this.model.toJSON().ingredients};
         }
     });
 
