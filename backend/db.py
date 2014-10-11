@@ -12,8 +12,8 @@ class RecipeIngredients(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     recipe_id = db.Column(db.Integer, db.ForeignKey('recipe.id'))
     ingredient_id = db.Column(db.Integer, db.ForeignKey('ingredient.id'))
-    amount = db.Column(db.String(100))
-    unit = db.Column(db.String(100))
+    amount = db.Column(db.String(500))
+    unit = db.Column(db.String(500))
 
     recipe = db.relationship('Recipe', backref='recipe_ingredients')
     ingredient = db.relationship('Ingredient', backref='recipe_ingredients')
@@ -32,7 +32,7 @@ class RecipeIngredients(db.Model):
 
 class Recipe(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100))
+    title = db.Column(db.String(500))
     images = db.Column(db.Text)
     difficulty = db.Column(db.Integer)
     duration = db.Column(db.Integer)
@@ -93,8 +93,8 @@ class ShoppingListIngredients(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     shopping_list_id = db.Column(db.Integer, db.ForeignKey('shopping_list.id'))
     ingredient_id = db.Column(db.Integer, db.ForeignKey('ingredient.id'))
-    amount = db.Column(db.String(100))
-    unit = db.Column(db.String(100))
+    amount = db.Column(db.String(500))
+    unit = db.Column(db.String(500))
 
     shopping_list = db.relationship('ShoppingList', backref='shopping_list_ingredients')
     ingredient = db.relationship('Ingredient', backref='shopping_list_ingredients')
@@ -113,8 +113,8 @@ class InventoryIngredients(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     inventory_id = db.Column(db.Integer, db.ForeignKey('inventory.id'))
     ingredient_id = db.Column(db.Integer, db.ForeignKey('ingredient.id'))
-    amount = db.Column(db.String(100))
-    unit = db.Column(db.String(100))
+    amount = db.Column(db.String(500))
+    unit = db.Column(db.String(500))
 
     inventory = db.relationship('Inventory', backref='inventory_ingredients')
     ingredient = db.relationship('Ingredient', backref='inventory_ingredients')
@@ -160,11 +160,11 @@ class EAN(db.Model):
 
 class Ingredient(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(50))
-    image = db.Column(db.String(200))
+    title = db.Column(db.String(500))
+    image = db.Column(db.String(500))
     description = db.Column(db.Text)
     price = db.Column(db.Integer)
-    receipt_text = db.Column(db.String(100))
+    receipt_text = db.Column(db.String(500))
     data = db.Column(db.Text)
 
     shopping_lists = association_proxy('shopping_list_ingredients', 'shopping_list')
@@ -253,9 +253,9 @@ class Ingredient(db.Model):
 
 class Step(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100))
+    title = db.Column(db.String(500))
     description = db.Column(db.Text)
-    image = db.Column(db.String(200))
+    image = db.Column(db.String(500))
     recipe_id = db.Column(db.Integer, db.ForeignKey('recipe.id'))
 
     recipe = db.relationship(Recipe, backref='steps')
@@ -286,7 +286,7 @@ class Step(db.Model):
 
 class ShoppingList(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user = db.Column(db.String(100))
+    user = db.Column(db.String(500))
     recipe_id = db.Column(db.Integer, db.ForeignKey(Recipe.id))
 
     recipe = db.relationship(Recipe, backref='shopping_lists')
@@ -316,7 +316,7 @@ class ShoppingList(db.Model):
 
 class Inventory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user = db.Column(db.String(100))
+    user = db.Column(db.String(500))
     ingredients = association_proxy('inventory_ingredients', 'ingredient')
 
     def __init__(self, user=None):
