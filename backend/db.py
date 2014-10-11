@@ -182,7 +182,6 @@ class Ingredient(db.Model):
         # Receipt text
         if 'receipt_text' in product:
             self.receipt_text = product['receipt_text']
-            print(self.receipt_text)
         # Description
         if 'description' in product and 'text' in product['description']:
             self.description = product['description']['text']
