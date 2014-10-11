@@ -26,6 +26,9 @@ class RecipeIngredients(db.Model):
         self.amount = amount
         self.unit = unit
 
+    def __repr__(self):
+        return '<RecipeIngredients %r>' % self.id
+
 
 class Recipe(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -49,6 +52,9 @@ class Recipe(db.Model):
                 continue
             step = Step(step_data.get('title'), step_data.get('description'), step_data.get('image'), self)
             db.session.add(step)
+
+    def __str__(self):
+        return "Recipe '%s'" % self.title
 
     def __repr__(self):
         return '<Recipe %r>' % self.id
@@ -99,6 +105,9 @@ class ShoppingListIngredients(db.Model):
         self.amount = amount
         self.unit = unit
 
+    def __repr__(self):
+        return '<ShoppingListIngredients %r>' % self.id
+
 
 class InventoryIngredients(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -118,6 +127,9 @@ class InventoryIngredients(db.Model):
         self.amount = amount
         self.unit = unit
 
+    def __repr__(self):
+        return '<InventoryIngredients %r>' % self.id
+
 
 class EAN(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -134,6 +146,9 @@ class EAN(db.Model):
 
     def __repr__(self):
         return '<EAN %d>' % self.id
+
+    def __str__(self):
+        return 'EAN: %d' % self.ean
 
     def to_json(self):
         return {
@@ -312,6 +327,9 @@ class Inventory(db.Model):
 
     def __repr__(self):
         return '<Inventory %r>' % self.id
+
+    def __str__(self):
+        return "Inventory of %s" % self.user
 
     def add_ingredient(self, ingredient, amount, unit):
         ri = InventoryIngredients(self, ingredient, amount, unit)
