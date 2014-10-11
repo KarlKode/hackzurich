@@ -272,7 +272,7 @@ def parse_receipts():
 
     for note_title in notes.notes:
         note = note_store.getNote(note_title.guid, False, True, True, True)
-        if tag_guid in note.tagGuids:
+        if note.tagGuids and tag_guid in note.tagGuids:
             continue
         for resource in note.resources:
             if not resource.recognition:
