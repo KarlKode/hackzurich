@@ -15,8 +15,8 @@ class RecipeIngredients(db.Model):
     amount = db.Column(db.String(500))
     unit = db.Column(db.String(500))
 
-    recipe = db.relationship('Recipe', backref=db.backref('recipe_ingredients', lazy='joined'), lazy='joined')
-    ingredient = db.relationship('Ingredient', backref=db.backref('recipe_ingredients', lazy='joined'), lazy='joined')
+    recipe = db.relationship('Recipe', backref='recipe_ingredients', lazy='joined')
+    ingredient = db.relationship('Ingredient', backref='recipe_ingredients', lazy='joined')
 
     def __init__(self, recipe=None, ingredient=None, amount=None, unit=None):
         if not recipe:
@@ -64,7 +64,7 @@ class Recipe(db.Model):
         db.session.add(recipe_ingredients)
 
     def to_json(self, inventory=None):
-        ingredients = list(map(to_json, self.ingredients or []))
+        ingredients = list(i.to_json(inventory) for i in (self.ingredients or []))
         return {
             'id': self.id,
             'title': self.title,
@@ -77,7 +77,7 @@ class Recipe(db.Model):
         }
 
     def to_json_small(self, inventory=None):
-        ingredients = list(map(to_json, self.ingredients or []))
+        ingredients = list(i.to_json(inventory) for i in (self.ingredients or []))
         return {
             'id': self.id,
             'title': self.title,
@@ -96,10 +96,8 @@ class ShoppingListIngredients(db.Model):
     amount = db.Column(db.String(500))
     unit = db.Column(db.String(500))
 
-    shopping_list = db.relationship('ShoppingList', backref=db.backref('shopping_list_ingredients', lazy='joined'),
-                                    lazy='joined')
-    ingredient = db.relationship('Ingredient', backref=db.backref('shopping_list_ingredients', lazy='joined'),
-                                 lazy='joined')
+    shopping_list = db.relationship('ShoppingList', backref='shopping_list_ingredients')
+    ingredient = db.relationship('Ingredient', backref='shopping_list_ingredients')
 
     def __init__(self, shopping_list=None, ingredient=None, amount=None, unit=None):
         self.shopping_list = shopping_list
@@ -118,8 +116,8 @@ class InventoryIngredients(db.Model):
     amount = db.Column(db.String(500))
     unit = db.Column(db.String(500))
 
-    inventory = db.relationship('Inventory', backref=db.backref('inventory_ingredients', lazy='joined'), lazy='joined')
-    ingredient = db.relationship('Ingredient', backref=db.backref('inventory_ingredients', lazy='joined'), lazy='joined')
+    inventory = db.relationship('Inventory', backref='inventory_ingredients')
+    ingredient = db.relationship('Ingredient', backref='inventory_ingredients')
 
     def __init__(self, inventory=None, ingredient=None, amount=None, unit=None):
         if not inventory:
@@ -138,7 +136,7 @@ class EAN(db.Model):
     ean = db.Column(db.BigInteger)
     ingredient_id = db.Column(db.Integer, db.ForeignKey('ingredient.id'))
 
-    ingredient = db.relationship('Ingredient', backref=db.backref('eans', lazy='joined'), lazy='joined')
+    ingredient = db.relationship('Ingredient', backref='eans')
 
     def __init__(self, ean=None, ingredient=None):
         if not self.ean:
@@ -230,28 +228,12 @@ class Ingredient(db.Model):
         if 'id' in data:
             return Ingredient.query.filter_by(id=data['id']).first()
         elif 'ean' in data:
-            ean = EAN.query.filter_by(ean=data['ean'])
+            ean = EAN.query.filter_by(ean=data['ean']).first()
+            if ean == None:
+                return None
             return ean.ingredient
         abort(404)
 
-    @staticmethod
-    def fetch(ean):
-        url = 'http://api.autoidlabs.ch/products/%s?n=1' % ean
-        r = requests.get(url)
-        data = r.json()
-        if not 'name' in data:
-            abort(404)
-        if 'name' in data:
-            ingredient = Ingredient(data['name'], ean, data['image']['original'])
-            db.session.add(ingredient)
-        elif 'catPath' in data:
-            ingredient = Ingredient(data['name'], ean, None)
-            db.session.add(ingredient)
-        else:
-            ingredient = None
-        if ingredient:
-            ingredient.from_product(data)
-        return ingredient
 
 
 class Step(db.Model):
@@ -261,7 +243,7 @@ class Step(db.Model):
     image = db.Column(db.String(500))
     recipe_id = db.Column(db.Integer, db.ForeignKey('recipe.id'))
 
-    recipe = db.relationship(Recipe, backref=db.backref('steps', lazy='joined'), lazy='joined')
+    recipe = db.relationship(Recipe, backref='steps')
 
     def __init__(self, title=None, description=None, image=None, recipe=None):
         if not title:
@@ -292,7 +274,7 @@ class ShoppingList(db.Model):
     user = db.Column(db.String(500))
     recipe_id = db.Column(db.Integer, db.ForeignKey(Recipe.id))
 
-    recipe = db.relationship(Recipe, backref=db.backref('shopping_lists', lazy='joined'), lazy='joined')
+    recipe = db.relationship(Recipe, backref='shopping_lists')
     ingredients = association_proxy('shopping_list_ingredients', 'ingredient')
 
     def __init__(self):
