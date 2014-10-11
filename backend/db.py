@@ -230,8 +230,9 @@ class Ingredient(db.Model):
         if 'id' in data:
             return Ingredient.query.filter_by(id=data['id']).first()
         elif 'ean' in data:
-            ean = EAN.query.filter_by(ean=data['ean'])
-            return ean.ingredient
+            ean = EAN.query.filter_by(ean=data['ean']).first()
+            if ean:
+                return ean.ingredient
         abort(404)
 
     @staticmethod
