@@ -58,3 +58,8 @@ local_settings.py
 
 # Pycharm
 .idea
+
+
+#android
+android/GetCooking/gen/
+android/GetCooking/bin/
