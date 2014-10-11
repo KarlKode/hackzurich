@@ -10,7 +10,11 @@ define([
         base_url: 'http://hackzurich.me/recipe/',
         url: function () {
         	return this.base_url+this.id;
-        }
+        },
+
+	    parse: function(data) {
+	        return data.recipe;
+	    }
  
     });
 
