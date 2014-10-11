@@ -1,6 +1,7 @@
 import random
 from flask import Flask, jsonify, request, abort
 from flask.ext.cors import CORS
+import requests
 from sqlalchemy.orm.exc import NoResultFound
 
 from db import db, Recipe, Ingredient, Inventory, ShoppingList, to_json, \
@@ -9,7 +10,7 @@ import settings
 
 
 app = Flask(__name__)
-cors = CORS(app,automatic_options=True, headers='Content-Type')
+cors = CORS(app,automatic_options=True, headers=['Content-Type','X-DevTools-Emulate-Network-Conditions-Client-Id'])
 app.config.from_object(settings)
 db.init_app(app)
 
@@ -61,6 +62,22 @@ def install():
     db.session.commit()
     return 'done'
 
+@app.route('/load')
+def load():
+    last_empty = False
+    offset=0
+    while not last_empty:
+        url = 'https://test-web-api.migros.ch/eth-hack/products?key=k0DFQajkP8AnGMF9&limit=%s' % str(12)
+        offset +=12
+        print url
+        r = requests.get(url)
+        data = r.json()
+        for k,v in data['products'].items():
+            print v['receipt_text']
+            print v['eans']
+    return 'done'
+
+
 
 @app.route('/ingredient')
 def ingredient_list():
@@ -78,7 +95,7 @@ def ingredient_details(ean):
     return jsonify(ingredient=ingredient.to_json())
 
 
-@app.route('/shopping_list', methods=['GET', 'POST','DELETE'])
+@app.route('/shopping_list', methods=['GET', 'POST', 'DELETE'])
 def shopping_list_details():
     if request.method == 'DELETE':
         data = request.get_json(force=True)
@@ -109,7 +126,7 @@ def shopping_list_details():
     return jsonify(ingredients=list(map(to_json, shopping_list.ingredients)))
 
 
-@app.route('/inventory', methods=['GET', 'POST','DELETE'])
+@app.route('/inventory', methods=['GET', 'POST', 'DELETE'])
 def inventory_details():
     inventory = Inventory.get_current()
     if request.method == 'POST':
@@ -119,8 +136,8 @@ def inventory_details():
         for item in data['inventory']:
             ingredient = Ingredient.get_by_id_or_ean(item)
             if not ingredient:
-                ingredient = Ingredient.fetch(data.get('ean'))
-            inventory.add_ingredient(ingredient)
+                ingredient = Ingredient.fetch(item['ean'])
+            inventory.add_ingredient(ingredient, None, None)
         db.session.commit()
         return jsonify(inventory=inventory.to_json())
     elif request.method == 'GET':
@@ -177,5 +194,6 @@ def recipe_details(recipe_id):
 def close_connection(response):
     db.session.close()
     return response
+
 if __name__ == '__main__':
     app.run(threaded=True)

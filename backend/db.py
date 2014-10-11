@@ -146,12 +146,18 @@ class Ingredient(db.Model):
 
     @staticmethod
     def fetch(ean):
-        r = requests.get('http://api.autoidlabs.ch/products/%s?n=1' % ean)
+        url = 'http://api.autoidlabs.ch/products/%s?n=1' % ean
+        print url
+        r = requests.get(url)
         data = r.json()
         if not 'name' in data:
             abort(404)
-        ingredient = Ingredient(data['name'], ean, data['image']['original'])
-        db.session.add(ingredient)
+        if 'name' in data:
+            ingredient = Ingredient(data['name'], ean, data['image']['original'])
+            db.session.add(ingredient)
+        elif 'catPath' in data:
+            ingredient = Ingredient(data['name'], ean, None)
+            db.session.add(ingredient)
         return ingredient
 
 
