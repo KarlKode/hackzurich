@@ -30,7 +30,18 @@ def install():
     db.session.commit()
     return 'done'
 
-@app.route('/shopping_list')
+
+@app.route('/ingredient/<int:ean>')
+def ingredient(ean):
+    ingredient_obj = {
+        'id': 1,
+        'ean': ean,
+        'title': 'test ingredient',
+    }
+    return jsonify(ingredient=ingredient_obj)
+
+
+@app.route('/shopping_list', methods=['GET', 'POST'])
 def shopping_list():
     l = [
         {'id': 1, 'name': 'tomato', 'ean': 123},
