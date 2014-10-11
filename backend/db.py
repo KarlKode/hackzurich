@@ -216,6 +216,10 @@ class Inventory(db.Model):
             'ingredients': list(map(to_json, self.ingredients)),
         }
 
+    @staticmethod
+    def get_current():
+        return Inventory.query.first()
+
 
 def to_json(obj):
     return obj.to_json()

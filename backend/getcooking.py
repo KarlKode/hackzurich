@@ -78,9 +78,9 @@ def shopping_list_details():
     return jsonify(ingredients=list(map(to_json, shopping_list.ingredients)))
 
 
-@app.route('/inventory', methods=['GET', 'POST', 'DELETE'])
+@app.route('/inventory', methods=['GET', 'POST'])
 def inventory_details():
-    inventory = Inventory.query.first()
+    inventory = Inventory.get_current()
     if request.method == 'POST':
         data = request.get_json(force=True)
         if not 'inventory' in data:
@@ -92,17 +92,18 @@ def inventory_details():
             inventory.add_ingredient(ingredient)
         db.session.commit()
         return jsonify(inventory=inventory.to_json())
-    elif request.method == 'DELETE':
-        data = request.get_json(force=True)
-        if not 'inventory' in data:
-            abort(400)
-        for item in data['inventory']:
-            ingredient = Ingredient.get_by_id_or_ean(item)
-            if not ingredient:
-                ingredient = Ingredient.fetch(item.get('ean'))
-            inventory.remove_ingredient(ingredient)
     else:
         return jsonify(inventory=inventory.to_json())
+
+
+@app.route('/inventory/<id_or_ean>', methods=['DELETE'])
+def inventory_delete(id_or_ean):
+    inventory = Inventory.get_current()
+    ingredient = Ingredient.get_by_id_or_ean({'id': id_or_ean, 'ean': id_or_ean})
+    if not ingredient:
+        ingredient = Ingredient.fetch(id_or_ean)
+    inventory.remove_ingredient(ingredient)
+    db.session.commit()
 
 
 @app.route('/recipe')
