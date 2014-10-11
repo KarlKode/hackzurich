@@ -178,7 +178,7 @@ class Ingredient(db.Model):
 
     def to_json(self, inventory=None):
         if self.eans:
-            eans = list(map(to_json, self.eans))
+            eans = list(e.ean for e in self.eans)
         else:
             eans = []
         data = {

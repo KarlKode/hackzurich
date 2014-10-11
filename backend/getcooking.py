@@ -8,7 +8,7 @@ from flask.ext import admin
 from flask.ext.admin.contrib import sqla
 from flask.ext.admin.contrib.sqla.ajax import QueryAjaxModelLoader
 import requests
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, contains_eager
 from sqlalchemy.orm.exc import NoResultFound
 
 from flask.ext.cors import CORS
@@ -62,12 +62,13 @@ def load():
         products = data['products'].values()
         for product in products:
             eans = product['eans']
-            ingredient = Ingredient()
-            db.session.add(ingredient)
-            ingredient.title = product['name']
-            for ean_code in eans:
-                ingredient.add_ean(ean_code)
-            ingredient.from_product(product)
+            if len(eans)>0:
+                ingredient = Ingredient()
+                db.session.add(ingredient)
+                ingredient.title = product['name']
+                for ean_code in eans:
+                    ingredient.add_ean(ean_code)
+                ingredient.from_product(product)
             inserted += 1
         db.session.commit()
     return jsonify(success=True, imported=inserted)
@@ -138,8 +139,7 @@ def shopping_list_details():
         db.session.commit()
         return jsonify(ok=True)
     else:
-        shopping_list = db.session.query(ShoppingList).options(joinedload(*ShoppingList.ingredients.attr)).order_by(ShoppingList.id.desc()).first()
-        print shopping_list.ingredients
+        shopping_list = db.session.query(ShoppingList).options(joinedload(ShoppingList.shopping_list_ingredients,ShoppingListIngredients.ingredient, Ingredient.eans)).first()
     return jsonify(ingredients=list(i.to_json()  for i in shopping_list.ingredients if i))
 
 
