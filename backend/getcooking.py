@@ -1,16 +1,17 @@
 import random
+
 from flask import Flask, jsonify, request, abort
-from flask.ext.cors import CORS
 import requests
 from sqlalchemy.orm.exc import NoResultFound
 
+from flask.ext.cors import CORS
 from db import db, Recipe, Ingredient, Inventory, ShoppingList, to_json, \
-    RecipeIngredients, Step, InventoryIngredients, ShoppingListIngredients
+    RecipeIngredients, Step, InventoryIngredients, ShoppingListIngredients, EAN
 import settings
 
 
 app = Flask(__name__)
-cors = CORS(app,automatic_options=True, headers=['Content-Type','X-DevTools-Emulate-Network-Conditions-Client-Id'])
+cors = CORS(app, automatic_options=True, headers=['Content-Type', 'X-DevTools-Emulate-Network-Conditions-Client-Id'])
 app.config.from_object(settings)
 db.init_app(app)
 
@@ -25,28 +26,13 @@ def install():
     db.drop_all()
     db.create_all()
     ingredients = []
-    for i in range(0,20):
-        i0 = Ingredient('tomato'+str(i), i)
+    for i in range(0, 20):
+        i0 = Ingredient('tomato' + str(i), [i])
         db.session.add(i0)
         ingredients.append(i0)
-    i3 = Ingredient('markers', 3086120017446)
+    i3 = Ingredient('markers', [3086120017446])
     db.session.add(i3)
     ingredients.append(i3)
-
-    for i in range(0,100):
-        r0 = Recipe('tomato soup', 1, 30)
-        db.session.add(r0)
-        ingr=set([])
-        for i in range(0,6):
-            ingr.add(random.choice(ingredients))
-        for i in range(0,int(random.uniform(4,8))):
-            s = Step()
-            s.recipe = r0
-            s.title = "Step"+str(i)
-            s.description = "Lorem ipsum orem ipsum orem ipsumorem ipsumorem ipsumorem ipsumorem ipsum"+str(i)
-            db.session.add(s)
-        for i in ingr:
-            r0.add_ingredient(i, random.uniform(1,2000), 'g')
 
     s0 = ShoppingList()
     s0.add_ingredient(i3, '1', 'foo')
@@ -54,29 +40,45 @@ def install():
 
     inventory0 = Inventory("user@user.com")
     db.session.add(inventory0)
-    ingr=set([])
-    for i in range(0,6):
-        ingr.add(random.choice(ingredients))
-    for i in ingr:
-        inventory0.add_ingredient(i, random.uniform(1,2000), 'g')
     db.session.commit()
     return 'done'
 
+
 @app.route('/load')
 def load():
-    last_empty = False
-    offset=0
-    while not last_empty:
-        url = 'https://test-web-api.migros.ch/eth-hack/products?key=k0DFQajkP8AnGMF9&limit=%s' % str(12)
-        offset +=12
-        print url
-        r = requests.get(url)
+    ingredients = []
+    # Get total hits
+    base_url = url = 'https://test-web-api.migros.ch/eth-hack/products?key=k0DFQajkP8AnGMF9&limit=%d&offset=%d'
+    r = requests.get(base_url % (0, 0))
+    data = r.json()
+    if not 'total_hits' in data:
+        abort(500)
+    total = int(data['total_hits'])
+    while len(ingredients) < total:
+        r = requests.get(base_url % (100, len(ingredients)))
         data = r.json()
-        for k,v in data['products'].items():
-            print v['receipt_text']
-            print v['eans']
-    return 'done'
-
+        if not 'products' in data:
+            abort(500)
+        products = data['products'].values()
+        for product in products:
+            eans = product['eans']
+            # Is one of the products ean codes already in the database?
+            ean = None
+            for ean_code in eans:
+                ean = EAN.query.get(ean_code)
+                if ean:
+                    break
+            if ean:
+                ingredient = ean.ingredient
+                for ean_code in eans:
+                    ingredient.add_ean(ean_code)
+            else:
+                ingredient = Ingredient(product['name'], eans)
+                db.session.add(ingredient)
+            ingredient.from_product(product)
+            ingredients.append(ingredient)
+    db.session.commit()
+    return jsonify(success=True, imported=len(ingredients))
 
 
 @app.route('/ingredient')
@@ -88,7 +90,8 @@ def ingredient_list():
 @app.route('/ingredient/<int:ean>')
 def ingredient_details(ean):
     try:
-        ingredient = Ingredient.query.filter_by(ean=ean).one()
+        ean_obj = EAN.query.filter_by(ean=ean).one()
+        ingredient = ean_obj.ingredient
     except NoResultFound:
         ingredient = Ingredient.fetch(ean)
         db.session.commit()
@@ -104,11 +107,12 @@ def shopping_list_details():
         eans = []
         for item in data['ingredients']:
             eans.append(item['ean'])
-        ids =  db.session.query(ShoppingListIngredients.id)\
-            .join(ShoppingListIngredients.ingredient)\
+        ids = db.session.query(ShoppingListIngredients.id) \
+            .join(ShoppingListIngredients.ingredient) \
             .filter(Ingredient.ean.in_(eans)).all()
         ids = [id[0] for id in ids]
-        db.session.query(ShoppingListIngredients).filter(ShoppingListIngredients.id.in_(ids)).delete(synchronize_session='fetch')
+        db.session.query(ShoppingListIngredients).filter(ShoppingListIngredients.id.in_(ids)).delete(
+            synchronize_session='fetch')
         db.session.commit()
         return jsonify(ok=True)
     elif request.method == 'POST':
@@ -149,11 +153,12 @@ def inventory_details():
         eans = []
         for item in data['inventory']:
             eans.append(item['ean'])
-        ids =  db.session.query(InventoryIngredients.id)\
-            .join(InventoryIngredients.ingredient)\
+        ids = db.session.query(InventoryIngredients.id) \
+            .join(InventoryIngredients.ingredient) \
             .filter(Ingredient.ean.in_(eans)).all()
         ids = [id[0] for id in ids]
-        db.session.query(InventoryIngredients).filter(InventoryIngredients.id.in_(ids)).delete(synchronize_session='fetch')
+        db.session.query(InventoryIngredients).filter(InventoryIngredients.id.in_(ids)).delete(
+            synchronize_session='fetch')
         db.session.commit()
         return jsonify(ok=True)
 
@@ -173,8 +178,7 @@ def recipe_list():
     inventory = Inventory.query.first().to_json()
     recipes = db.session.query(Recipe).join(Recipe.recipe_ingredients).join(RecipeIngredients.ingredient)
     recipe_list = list(o.to_json_small(inventory) for o in recipes.all())
-    return jsonify(recipes=sorted(recipe_list,key=lambda x:x['missing']))
-
+    return jsonify(recipes=sorted(recipe_list, key=lambda x: x['missing']))
 
 
 @app.route('/recipe/best')
@@ -190,10 +194,12 @@ def recipe_details(recipe_id):
     recipe = Recipe.query.get_or_404(recipe_id)
     return jsonify(recipe=recipe.to_json(inventory))
 
+
 @app.after_request
 def close_connection(response):
     db.session.close()
     return response
+
 
 if __name__ == '__main__':
     app.run(threaded=True)

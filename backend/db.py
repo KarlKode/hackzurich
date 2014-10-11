@@ -1,7 +1,9 @@
+import json
 from flask import abort
 from flask.ext.sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.associationproxy import association_proxy
 import requests
+from sqlalchemy.orm.exc import NoResultFound
 
 db = SQLAlchemy()
 
@@ -58,7 +60,6 @@ class Recipe(db.Model):
             'steps': list(map(to_json, self.steps))
         }
 
-
     def to_json_small(self, inventory=None):
         ingredients = list(i.to_json(inventory) for i in self.ingredients)
         return {
@@ -106,18 +107,45 @@ class InventoryIngredients(db.Model):
         self.unit = unit
 
 
+class EAN(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    ean = db.Column(db.Integer)
+    ingredient_id = db.Column(db.Integer, db.ForeignKey('ingredient.id'))
+
+    ingredient = db.relationship('Ingredient', backref='eans')
+
+    def __init__(self, ean, ingredient):
+        self.ean = ean
+        self.ingredient = ingredient
+
+    def __repr__(self):
+        return '<EAN %d>' % self.id
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'ean': self.ean,
+            'ingredient_id': self.ingredient_id,
+        }
+
+
 class Ingredient(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(50))
-    ean = db.Column(db.Integer)
     image = db.Column(db.String(200))
+    description = db.Column(db.Text)
+    price = db.Column(db.Integer)
+    receipt_text = db.Column(db.String(100))
+    data = db.Column(db.Text)
 
     shopping_lists = association_proxy('shopping_list_ingredients', 'shopping_list')
     inventories = association_proxy('inventory_ingredients', 'inventory')
 
-    def __init__(self, title, ean, image=None):
+    def __init__(self, title, eans=None, image=None):
         self.title = title
-        self.ean = ean
+        if eans:
+            for ean in eans:
+                self.add_ean(ean)
         self.image = image
 
     def __repr__(self):
@@ -127,14 +155,43 @@ class Ingredient(db.Model):
         data = {
             'id': self.id,
             'title': self.title,
-            'ean': self.ean,
+            'eans': list(map(to_json, self.eans)),
             'image': self.image,
+            'description': self.description,
+            'price': self.price,
+            'receipt_text': self.receipt_text,
         }
         if inventory:
             ingredients = inventory['ingredients']
             exists = any(ingredient['id'] == self.id for ingredient in ingredients)
             data['missing'] = not exists
         return data
+
+    def add_ean(self, ean):
+        try:
+            ean = EAN.query.filter_by(ean=ean).one()
+            ean.ingredient = self
+        except NoResultFound:
+            ean = EAN(ean, self)
+            db.session.add(ean)
+
+    def from_product(self, product):
+        # Image
+        if 'image' in product and 'original' in product['image']:
+            self.image = product['image']['original']
+        # Receipt text
+        if 'receipt_text' in product:
+            self.receipt_text = product['receipt_text']
+            print(self.receipt_text)
+        # Description
+        if 'description' in product and 'text' in product['description']:
+            self.description = product['description']['text']
+        # Regional information
+        if 'regional_information' in product and 'national' in product['regional_information']:
+            national = product['regional_information']['national']
+            if 'price' in national and 'item' in national['price'] and 'price' in national['price']['item']:
+                self.price = int(100 * float(national['price']['item']['price']))
+        self.data = json.dumps(product)
 
     @staticmethod
     def get_by_id_or_ean(data):
@@ -147,7 +204,6 @@ class Ingredient(db.Model):
     @staticmethod
     def fetch(ean):
         url = 'http://api.autoidlabs.ch/products/%s?n=1' % ean
-        print url
         r = requests.get(url)
         data = r.json()
         if not 'name' in data:
@@ -158,6 +214,10 @@ class Ingredient(db.Model):
         elif 'catPath' in data:
             ingredient = Ingredient(data['name'], ean, None)
             db.session.add(ingredient)
+        else:
+            ingredient = None
+        if ingredient:
+            ingredient.from_product(data)
         return ingredient
 
 
