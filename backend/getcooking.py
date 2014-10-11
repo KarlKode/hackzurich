@@ -71,7 +71,7 @@ def load():
 
 @app.route('/ingredient')
 def ingredient_list():
-    query = db.session.query(Ingredient).options(joinedload(Ingredient.eans))
+    query = Ingredient.query
     if 'q' in request.args:
         query = query.filter(Ingredient.title.like('%%%s%%' % request.args.get('q')))
     if 'limit' in request.args:

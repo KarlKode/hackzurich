@@ -15,8 +15,8 @@ class RecipeIngredients(db.Model):
     amount = db.Column(db.String(500))
     unit = db.Column(db.String(500))
 
-    recipe = db.relationship('Recipe', backref='recipe_ingredients', lazy='joined')
-    ingredient = db.relationship('Ingredient', backref='recipe_ingredients', lazy='joined')
+    recipe = db.relationship('Recipe', backref=db.backref('recipe_ingredients', lazy='joined'), lazy='joined')
+    ingredient = db.relationship('Ingredient', backref=db.backref('recipe_ingredients', lazy='joined'), lazy='joined')
 
     def __init__(self, recipe=None, ingredient=None, amount=None, unit=None):
         if not recipe:
@@ -96,8 +96,10 @@ class ShoppingListIngredients(db.Model):
     amount = db.Column(db.String(500))
     unit = db.Column(db.String(500))
 
-    shopping_list = db.relationship('ShoppingList', backref='shopping_list_ingredients')
-    ingredient = db.relationship('Ingredient', backref='shopping_list_ingredients')
+    shopping_list = db.relationship('ShoppingList', backref=db.backref('shopping_list_ingredients', lazy='joined'),
+                                    lazy='joined')
+    ingredient = db.relationship('Ingredient', backref=db.backref('shopping_list_ingredients', lazy='joined'),
+                                 lazy='joined')
 
     def __init__(self, shopping_list=None, ingredient=None, amount=None, unit=None):
         self.shopping_list = shopping_list
@@ -116,8 +118,8 @@ class InventoryIngredients(db.Model):
     amount = db.Column(db.String(500))
     unit = db.Column(db.String(500))
 
-    inventory = db.relationship('Inventory', backref='inventory_ingredients')
-    ingredient = db.relationship('Ingredient', backref='inventory_ingredients')
+    inventory = db.relationship('Inventory', backref=db.backref('inventory_ingredients', lazy='joined'), lazy='joined')
+    ingredient = db.relationship('Ingredient', backref=db.backref('inventory_ingredients', lazy='joined'), lazy='joined')
 
     def __init__(self, inventory=None, ingredient=None, amount=None, unit=None):
         if not inventory:
@@ -136,7 +138,7 @@ class EAN(db.Model):
     ean = db.Column(db.BigInteger)
     ingredient_id = db.Column(db.Integer, db.ForeignKey('ingredient.id'))
 
-    ingredient = db.relationship('Ingredient', backref='eans')
+    ingredient = db.relationship('Ingredient', backref=db.backref('eans', lazy='joined'), lazy='joined')
 
     def __init__(self, ean=None, ingredient=None):
         if not self.ean:
@@ -258,7 +260,7 @@ class Step(db.Model):
     image = db.Column(db.String(500))
     recipe_id = db.Column(db.Integer, db.ForeignKey('recipe.id'))
 
-    recipe = db.relationship(Recipe, backref='steps')
+    recipe = db.relationship(Recipe, backref=db.backref('steps', lazy='joined'), lazy='joined')
 
     def __init__(self, title=None, description=None, image=None, recipe=None):
         if not title:
@@ -289,7 +291,7 @@ class ShoppingList(db.Model):
     user = db.Column(db.String(500))
     recipe_id = db.Column(db.Integer, db.ForeignKey(Recipe.id))
 
-    recipe = db.relationship(Recipe, backref='shopping_lists')
+    recipe = db.relationship(Recipe, backref=db.backref('shopping_lists', lazy='joined'), lazy='joined')
     ingredients = association_proxy('shopping_list_ingredients', 'ingredient')
 
     def __init__(self):
