@@ -53,12 +53,7 @@ def ingredient_details(ean):
     try:
         ingredient = Ingredient.query.filter_by(ean=ean).one()
     except NoResultFound:
-        r = requests.get('http://api.autoidlabs.ch/products/%s?n=1' % ean)
-        data = r.json()
-        if not 'name' in data:
-            abort(404)
-        ingredient = Ingredient(data['name'], ean, data['image']['original'])
-        db.session.add(ingredient)
+        Ingredient.fetch(ean)
         db.session.commit()
     return jsonify(ingredient=ingredient.to_json())
 
@@ -90,8 +85,7 @@ def inventory_details():
         for item in data['inventory']:
             ingredient = Ingredient.get_by_id_or_ean(item)
             if not ingredient:
-                # TODO: get inventory data from API
-                ingredient = None
+                ingredient = Ingredient.fetch(data.get('ean'))
             inventory.add_ingredient(ingredient)
         db.session.commit()
         return jsonify(inventory=inventory.to_json())
@@ -102,8 +96,7 @@ def inventory_details():
         for item in data['inventory']:
             ingredient = Ingredient.get_by_id_or_ean(item)
             if not ingredient:
-                # TODO: get inventory data from API
-                ingredient = None
+                ingredient = Ingredient.fetch(item.get('ean'))
             inventory.remove_ingredient(ingredient)
     else:
         return jsonify(inventory=inventory.to_json())

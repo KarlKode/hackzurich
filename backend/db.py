@@ -1,5 +1,6 @@
 from flask import abort
 from flask.ext.sqlalchemy import SQLAlchemy
+import requests
 from sqlalchemy.ext.associationproxy import association_proxy
 
 db = SQLAlchemy()
@@ -130,6 +131,15 @@ class Ingredient(db.Model):
         elif 'ean' in data:
             return Ingredient.query.get(ean=data['ean'])
         abort(404)
+
+    @staticmethod
+    def fetch(ean):
+        r = requests.get('http://api.autoidlabs.ch/products/%s?n=1' % ean)
+        data = r.json()
+        if not 'name' in data:
+            abort(404)
+        ingredient = Ingredient(data['name'], ean, data['image']['original'])
+        db.session.add(ingredient)
 
 
 class Step(db.Model):
