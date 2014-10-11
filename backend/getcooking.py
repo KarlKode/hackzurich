@@ -1,8 +1,10 @@
+import logging
 from flask import Flask, jsonify, request, abort
 from flask.ext import admin
 from flask.ext.admin.contrib import sqla
 from flask.ext.admin.contrib.sqla.ajax import QueryAjaxModelLoader
 import requests
+from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.exc import NoResultFound
 
 from flask.ext.cors import CORS
@@ -69,7 +71,7 @@ def load():
 
 @app.route('/ingredient')
 def ingredient_list():
-    query = Ingredient.query
+    query = db.session.query(Ingredient).options(joinedload(Ingredient.eans))
     if 'q' in request.args:
         query = query.filter(Ingredient.title.like('%%%s%%' % request.args.get('q')))
     if 'limit' in request.args:
@@ -245,4 +247,6 @@ admin.add_view(InventoryIngredientsAdmin(InventoryIngredients, db.session))
 
 
 if __name__ == '__main__':
+    logging.basicConfig()
+    logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
     app.run(threaded=True)
