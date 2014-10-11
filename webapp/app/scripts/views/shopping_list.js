@@ -6,16 +6,16 @@ define([
     'backbone',
     'views/base',
     'templates',
-    'models/inventory',
-], function ($, _, Backbone, BaseView, JST, Inventory) {
+    'models/shopping_list',
+], function ($, _, Backbone, BaseView, JST, ShoppingList) {
     'use strict';
 
-    var InventoryView = BaseView.extend({
-        template: JST['app/scripts/templates/inventory.ejs'],
+    var ShoppingListView = BaseView.extend({
+        template: JST['app/scripts/templates/shopping_list.ejs'],
  
  
         initialize: function () {
-            this.model = new Inventory();
+            this.model = new ShoppingList();
             this.listenTo(this.model, 'change', this.render);
             BaseView.prototype.initialize.call(this);
             this.model.fetch({reset:true});
@@ -31,7 +31,7 @@ define([
             var self = this;
             $.ajax({
                 contentType: 'application/json',
-                data: JSON.stringify({inventory:[{ean:$(e.target).closest('a').data('ean')}]}),
+                data: JSON.stringify({ingredients:[{ean:$(e.target).closest('a').data('ean')}]}),
                 dataType: 'json',
                 success: function(data){
                     self.model.fetch();
@@ -41,7 +41,7 @@ define([
                 },
                 processData: false,
                 type: 'DELETE',
-                url: window.base_url+'/inventory'
+                url: window.base_url+'/shopping_list'
             }); 
 
         },
@@ -51,5 +51,5 @@ define([
         }
     });
 
-    return InventoryView;
+    return ShoppingListView;
 });

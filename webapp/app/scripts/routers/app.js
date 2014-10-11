@@ -8,8 +8,9 @@ define([
     'views/recipes',
     'views/recipe',
     'views/inventory',
-    'views/ingredients'
-], function ($, Backbone, LayoutView, MainView, RecipesView, RecipeView, InventoryView, IngredientsView) {
+    'views/ingredients',
+    'views/shopping_list'
+], function ($, Backbone, LayoutView, MainView, RecipesView, RecipeView, InventoryView, IngredientsView, ShoppingListView) {
     'use strict';
 
     var AppRouter = Backbone.Router.extend({
@@ -18,7 +19,8 @@ define([
             'recipes': 'recipes',
             'inventory': 'inventory',
             'recipes/:id': 'recipe',
-            'ingredients': 'ingredients'
+            'ingredients': 'ingredients',
+            'shopping_list': 'shopping_list'
         },
 
         views: {
@@ -28,7 +30,8 @@ define([
 
             'RecipeView': RecipeView,
             'InventoryView':InventoryView,
-            'IngredientsView':IngredientsView
+            'IngredientsView':IngredientsView,
+            'ShoppingListView':ShoppingListView
         },
 
         current_layout: null,
@@ -55,6 +58,10 @@ define([
 
         ingredients: function (argument) {
             this.loadView('main', 'IngredientsView', arguments);
+        },
+
+        shopping_list: function (argument) {
+            this.loadView('main', 'ShoppingListView', arguments);
         },
 
         inventory: function (argument) {
