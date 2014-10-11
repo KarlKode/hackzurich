@@ -34,18 +34,26 @@ class Recipe(db.Model):
 
     ingredients = association_proxy('recipe_ingredients', 'ingredient')
 
-    def __init__(self, title, difficulty, duration, images=None):
+    def __init__(self, title=None, difficulty=None, duration=None, images=None, steps=None):
+        if not title:
+            return
         self.title = title
         self.difficulty = difficulty
         self.duration = duration
         self.images = images
+        for step_data in steps or []:
+            # Don't add empty steps
+            if not 'title' in step_data:
+                continue
+            step = Step(step_data.get('title'), step_data.get('description'), step_data.get('image'), self)
+            db.session.add(step)
 
     def __repr__(self):
         return '<Recipe %r>' % self.id
 
     def add_ingredient(self, ingredient, amount, unit):
-        ri = RecipeIngredients(self, ingredient, amount, unit)
-        db.session.add(ri)
+        recipe_ingredients = RecipeIngredients(self, ingredient, amount, unit)
+        db.session.add(recipe_ingredients)
 
     def to_json(self, inventory=None):
         ingredients = list(i.to_json(inventory) for i in self.ingredients)
@@ -148,6 +156,9 @@ class Ingredient(db.Model):
                 self.add_ean(ean)
         self.image = image
 
+    def __str__(self):
+        return self.title
+
     def __repr__(self):
         return '<Ingredient %r>' % self.id
 
@@ -229,8 +240,16 @@ class Step(db.Model):
 
     recipe = db.relationship(Recipe, backref='steps')
 
-    def __init__(self):
-        pass
+    def __init__(self, title=None, description=None, image=None, recipe=None):
+        if not title:
+            return
+        self.title = title
+        self.description = description
+        self.image = image
+        self.recipe = recipe
+
+    def __str__(self):
+        return "Step '%s'" % self.title
 
     def __repr__(self):
         return '<Step %r>' % self.id
@@ -256,8 +275,11 @@ class ShoppingList(db.Model):
     def __init__(self):
         pass
 
+    def __str__(self):
+        return "Sample Shopping List"
+
     def __repr__(self):
-        return '<Recipe %r>' % self.id
+        return '<Shopping list %r>' % self.id
 
     def add_ingredient(self, ingredient, amount, unit):
         sli = ShoppingListIngredients(self, ingredient, amount, unit)

@@ -1,6 +1,6 @@
-import random
-
 from flask import Flask, jsonify, request, abort
+from flask.ext import admin
+from flask.ext.admin.contrib import sqla
 import requests
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -25,22 +25,6 @@ def hello_world():
 def install():
     db.drop_all()
     db.create_all()
-    ingredients = []
-    for i in range(0, 20):
-        i0 = Ingredient('tomato' + str(i), [i])
-        db.session.add(i0)
-        ingredients.append(i0)
-    i3 = Ingredient('markers', [3086120017446])
-    db.session.add(i3)
-    ingredients.append(i3)
-
-    s0 = ShoppingList()
-    s0.add_ingredient(i3, '1', 'foo')
-    db.session.add(s0)
-
-    inventory0 = Inventory("user@user.com")
-    db.session.add(inventory0)
-    db.session.commit()
     return 'done'
 
 
@@ -173,12 +157,24 @@ def inventory_delete(id_or_ean):
     db.session.commit()
 
 
-@app.route('/recipe')
+@app.route('/recipe', methods=['GET'])
 def recipe_list():
     inventory = Inventory.query.first().to_json()
     recipes = db.session.query(Recipe).join(Recipe.recipe_ingredients).join(RecipeIngredients.ingredient)
     recipe_list = list(o.to_json_small(inventory) for o in recipes.all())
     return jsonify(recipes=sorted(recipe_list, key=lambda x: x['missing']))
+
+
+@app.route('/recipe', methods=['POST'])
+def recipe_add():
+    data = request.get_json(force=True)
+    required_fields = ['title', 'images', 'difficulty', 'duration', 'steps']
+    for required_field in required_fields:
+        if not required_field in data:
+            abort(400)
+    recipe = Recipe(data['title'], data['difficulty'], data['duration'], data['images'], data['steps'])
+    db.session.add(recipe)
+    db.session.commit()
 
 
 @app.route('/recipe/best')
@@ -188,7 +184,7 @@ def recipe_best_list():
     return jsonify(recipes=list(map(to_json, recipes)))
 
 
-@app.route('/recipe/<int:recipe_id>')
+@app.route('/recipe/<int:recipe_id>', methods=['GET', 'DELETE'])
 def recipe_details(recipe_id):
     inventory = Inventory.query.first().to_json()
     recipe = Recipe.query.get_or_404(recipe_id)
@@ -199,6 +195,20 @@ def recipe_details(recipe_id):
 def close_connection(response):
     db.session.close()
     return response
+
+
+# Admin stuff# Create admin
+class IngredientAdmin(sqla.ModelView):
+    column_searchable_list = ('title', Ingredient.title)
+
+admin = admin.Admin(app, 'Recipe')
+admin.add_view(sqla.ModelView(Recipe, db.session))
+admin.add_view(sqla.ModelView(EAN, db.session))
+admin.add_view(IngredientAdmin(Ingredient, db.session))
+admin.add_view(sqla.ModelView(Step, db.session))
+admin.add_view(sqla.ModelView(ShoppingList, db.session))
+admin.add_view(sqla.ModelView(Inventory, db.session))
+admin.add_view(sqla.ModelView(RecipeIngredients, db.session))
 
 
 if __name__ == '__main__':
