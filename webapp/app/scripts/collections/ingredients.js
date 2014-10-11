@@ -7,17 +7,17 @@ define([
 ], function (_, Backbone, RecipeModel) {
     'use strict';
 
-    var RecipesCollection = Backbone.Collection.extend({
+    var IngredientsCollection = Backbone.Collection.extend({
         model: RecipeModel,
 
         url: function (argument) {
-            return         window.base_url+'/recipe';
+            return         window.base_url+'/ingredient';
         },
 
 	    parse: function(data) {
-	        return data.recipes;
+	        return data.ingredients;
 	    }
     });
 
-    return RecipesCollection;
+    return IngredientsCollection;
 });

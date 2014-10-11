@@ -24,11 +24,39 @@ define([
         },
 
         events:{
-            'click .cook_this': 'cook'
+            'click .cook_this': 'cook',
+            'click .add_to_list': 'add_to_list',
+            'click .done_shopping': 'done_shopping'
+        },
+
+        done_shopping: function(){
+            this.model.fetch({reset:true});
+        },
+
+        add_to_list: function(e){
+            e.preventDefault();
+            var elements = _.map(this.$el.find('.ingredient:checked'), function(item){
+                return {'ean':$(item).data('ean'),'amount':$(item).data('amount'),'unit':$(item).data('unit')};
+            });
+            $.ajax({
+                contentType: 'application/json',
+                data: JSON.stringify({ingredients:elements}),
+                dataType: 'json',
+                success: function(data){
+                    $(".cook_recipe").modal('hide');
+                    $(".done").modal();
+                },
+                error: function(){
+                    alert("Device control failed");
+                },
+                processData: false,
+                type: 'POST',
+                url: window.base_url+'/shopping_list'
+            }); 
         },
 
         cook: function(){
-            $(".modal").modal();
+            $(".cook_recipe").modal();
         },
 
         after_render: function(){

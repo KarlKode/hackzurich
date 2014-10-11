@@ -1,7 +1,7 @@
 <h2><%=recipe.title%></h2> 
 <div class="row">
 <div class="  col-md-8"> 
-<img class="well" src="http://testmayihavethatrecipe.files.wordpress.com/2012/10/roasted-eggplant-soup-recipe1.jpg" style="max-width:100%" >
+<img class="well" src="http://localhost:6001/roasted-eggplant-soup-recipe1.jpg" style="max-width:100%" >
   </div>
 <div class=" col-md-4"> 
 <div class="well">
@@ -53,7 +53,7 @@
     </div> 
     </div> 
   </div>
-  <div class="modal">
+  <div class="modal cook_recipe">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -65,7 +65,7 @@
 	%>
                <div class="checkbox  radio-primary">
                     <label>
-                        <input type="checkbox"  <% if(ingredient.missing == true){%>
+                        <input type="checkbox" data-ean="<%=ingredient.ean %>" data-amount="<%=ingredient.amount %>" data-unit="<%=ingredient.unit %>" class="ingredient" <% if(ingredient.missing == true){%>
                         	checked
                         <% } %>> <%=ingredient.title %>
                       
@@ -76,7 +76,26 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Add to shopping list</button>
+                <button type="button" class="btn btn-primary add_to_list">Add to shopping list</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+  <div class="modal done">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title">Ready to GO</h4>
+            </div>
+            <div class="modal-body" style="text-align:center">
+ 
+<i style="font-size:200px" class="fa fa-shopping-cart"></i>
+            </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-success done_shopping" data-dismiss="modal">Close</button> 
             </div>
         </div>
     </div>
