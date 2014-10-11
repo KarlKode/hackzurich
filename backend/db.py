@@ -63,6 +63,12 @@ class ShoppingListIngredients(db.Model):
     shopping_list = db.relationship('ShoppingList', backref='shopping_list_ingredients')
     ingredient = db.relationship('Ingredient', backref='shopping_list_ingredients')
 
+    def __init__(self, shopping_list, ingredient, amount, unit):
+        self.shopping_list = shopping_list
+        self.ingredient = ingredient
+        self.amount = amount
+        self.unit = unit
+
 
 class InventoryIngredients(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -134,11 +140,15 @@ class ShoppingList(db.Model):
     recipe = db.relationship(Recipe, backref='shopping_lists')
     ingredients = association_proxy('shopping_list_ingredients', 'ingredient')
 
-    def __init__(self):
-        pass
+    def __init__(self, recipe):
+        self.recipe = recipe
 
     def __repr__(self):
         return '<Recipe %r>' % self.id
+
+    def add_ingredient(self, ingredient, amount, unit):
+        sli = ShoppingListIngredients(self, ingredient, amount, unit)
+        db.session.add(sli)
 
     def to_json(self):
         return {
