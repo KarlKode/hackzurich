@@ -68,7 +68,14 @@ def load():
 
 @app.route('/ingredient')
 def ingredient_list():
-    ingredients = Ingredient.query.all()
+    query = Ingredient.query
+    if 'q' in request.args:
+        query = query.filter(Ingredient.title.like('%%%s%%' % request.args.get('q')))
+    if 'limit' in request.args:
+        query = query.limit(int(request.args.get('limit')))
+    if 'offset' in request.args:
+        query = query.offset(int(request.args.get('offset')))
+    ingredients = query.all()
     return jsonify(ingredients=list(map(to_json, ingredients)))
 
 
