@@ -53,7 +53,7 @@ def ingredient_details(ean):
     try:
         ingredient = Ingredient.query.filter_by(ean=ean).one()
     except NoResultFound:
-        Ingredient.fetch(ean)
+        ingredient = Ingredient.fetch(ean)
         db.session.commit()
     return jsonify(ingredient=ingredient.to_json())
 
