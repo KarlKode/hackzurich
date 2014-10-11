@@ -1,7 +1,7 @@
 from flask import abort
 from flask.ext.sqlalchemy import SQLAlchemy
-import requests
 from sqlalchemy.ext.associationproxy import association_proxy
+import requests
 
 db = SQLAlchemy()
 
@@ -41,12 +41,12 @@ class Recipe(db.Model):
     def __repr__(self):
         return '<Recipe %r>' % self.id
 
-    def add_ingredient(self, ingredient):
-        ri = RecipeIngredients(self, ingredient, None, None)
+    def add_ingredient(self, ingredient, amount, unit):
+        ri = RecipeIngredients(self, ingredient, amount, unit)
         db.session.add(ri)
 
     def to_json(self, inventory=None):
-        ingredients = list(map(to_json, self.ingredients))
+        ingredients = list(i.to_json(inventory) for i in self.ingredients)
         return {
             'id': self.id,
             'title': self.title,
@@ -56,6 +56,19 @@ class Recipe(db.Model):
             'ingredients': ingredients,
             'missing': sum(1 for i in ingredients if 'missing' in i and i['missing']),
             'steps': list(map(to_json, self.steps))
+        }
+
+
+    def to_json_small(self, inventory=None):
+        ingredients = list(i.to_json(inventory) for i in self.ingredients)
+        return {
+            'id': self.id,
+            'title': self.title,
+            'images': self.images,
+            'difficulty': self.difficulty,
+            'duration': self.duration,
+            'ingredients': ingredients,
+            'missing': sum(1 for i in ingredients if 'missing' in i and i['missing'])
         }
 
 
@@ -126,9 +139,9 @@ class Ingredient(db.Model):
     @staticmethod
     def get_by_id_or_ean(data):
         if 'id' in data:
-            return Ingredient.query.get(id=data['id'])
+            return Ingredient.query.filter_by(id=data['id']).first()
         elif 'ean' in data:
-            return Ingredient.query.get(ean=data['ean'])
+            return Ingredient.query.filter_by(ean=data['ean']).first()
         abort(404)
 
     @staticmethod
@@ -176,13 +189,13 @@ class ShoppingList(db.Model):
     ingredients = association_proxy('shopping_list_ingredients', 'ingredient')
 
     def __init__(self):
-        self.recipe = None
+        pass
 
     def __repr__(self):
         return '<Recipe %r>' % self.id
 
-    def add_ingredient(self, ingredient):
-        sli = ShoppingListIngredients(self, ingredient, None, None)
+    def add_ingredient(self, ingredient, amount, unit):
+        sli = ShoppingListIngredients(self, ingredient, amount, unit)
         db.session.add(sli)
 
     def to_json(self):
@@ -199,14 +212,14 @@ class Inventory(db.Model):
     user = db.Column(db.String(100))
     ingredients = association_proxy('inventory_ingredients', 'ingredient')
 
-    def __init__(self):
-        pass
+    def __init__(self, user):
+        self.user = user
 
     def __repr__(self):
         return '<Inventory %r>' % self.id
 
-    def add_ingredient(self, ingredient):
-        ri = InventoryIngredients(self, ingredient, None, None)
+    def add_ingredient(self, ingredient, amount, unit):
+        ri = InventoryIngredients(self, ingredient, amount, unit)
         db.session.add(ri)
 
     def to_json(self):

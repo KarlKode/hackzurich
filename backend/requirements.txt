@@ -6,3 +6,4 @@ SQLAlchemy==0.9.7
 Werkzeug==0.9.6
 itsdangerous==0.24
 requests==2.4.3
+mysql-python
