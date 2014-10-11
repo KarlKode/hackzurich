@@ -117,7 +117,7 @@ class InventoryIngredients(db.Model):
 
 class EAN(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    ean = db.Column(db.Integer)
+    ean = db.Column(db.BigInteger)
     ingredient_id = db.Column(db.Integer, db.ForeignKey('ingredient.id'))
 
     ingredient = db.relationship('Ingredient', backref='eans')
