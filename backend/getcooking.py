@@ -134,8 +134,7 @@ def shopping_list_details():
         db.session.commit()
         return jsonify(ok=True)
     else:
-        shopping_list = db.session.query(ShoppingList).options(contains_eager(ShoppingList.shopping_list_ingredients,ShoppingListIngredients.ingredient, Ingredient.eans)).first()
-        print shopping_list.ingredients
+        shopping_list = db.session.query(ShoppingList).options(joinedload(ShoppingList.shopping_list_ingredients,ShoppingListIngredients.ingredient, Ingredient.eans)).first()
     return jsonify(ingredients=list(i.to_json()  for i in shopping_list.ingredients if i))
 
 
