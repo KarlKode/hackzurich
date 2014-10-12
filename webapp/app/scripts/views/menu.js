@@ -20,6 +20,9 @@ define([
 
         after_render: function () {
             this.update_active();
+             this.$el.find('.nav a').on('click', function(){ 
+    $(".navbar-toggle").click() //bootstrap 3.x by Richard
+});
         },
 
         update_active: function (argument) { 
@@ -42,8 +45,7 @@ define([
             });
             item && menu_items.removeClass('active'); 
             item && item.addClass('active');
-        },
-
+        }, 
         dispose: function(){
           Router.off( null, null, this );
           BaseView.prototype.dispose.call(this);
