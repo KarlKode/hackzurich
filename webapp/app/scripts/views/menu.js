@@ -20,6 +20,11 @@ define([
 
         after_render: function () {
             this.update_active();
+             this.$el.find('.nav a').on('click', function(){ 
+  if($('.navbar-toggle').css('display') !='none'){
+            $(".navbar-toggle").trigger( "click" );
+        }
+});
         },
 
         update_active: function (argument) { 
@@ -42,8 +47,7 @@ define([
             });
             item && menu_items.removeClass('active'); 
             item && item.addClass('active');
-        },
-
+        }, 
         dispose: function(){
           Router.off( null, null, this );
           BaseView.prototype.dispose.call(this);
