@@ -1,0 +1,16 @@
+<section class="block">
+    <div id="myCarousel" class="carousel slide">
+        <div class="carousel-inner">
+        <% _.each(recipe.steps, function (step,i) { %>
+ 
+            <div class="<% if(i==0){ %>active<% }%> item">
+                <h1><%=step.title %></h1>
+                <h2><%=step.description %></h2>
+            </div>
+<% }) %>  
+        </div>
+        <a class="carousel-control left" href="#myCarousel" data-slide="prev">‹</a>
+ <a class="carousel-control right" href="#myCarousel" data-slide="next">›</a>
+
+    </div>
+</section>

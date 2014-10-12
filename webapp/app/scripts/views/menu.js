@@ -45,7 +45,7 @@ define([
         },
 
         dispose: function(){
-          App.Router.off( null, null, this );
+          Router.off( null, null, this );
           BaseView.prototype.dispose.call(this);
         }
     });
