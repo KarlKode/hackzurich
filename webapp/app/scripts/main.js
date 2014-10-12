@@ -27,7 +27,7 @@ if (typeof String.prototype.startsWith != 'function') {
   };
 }
 window.base_url = "http://hackzurich.me";
-//window.base_url = "http://127.0.0.1:5000";
+// window.base_url = "http://127.0.0.1:5000";
 require([
     'backbone', 'routers/app'
 ], function (Backbone, App) {

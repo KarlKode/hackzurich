@@ -1,8 +1,13 @@
 import logging
+from xml.etree import ElementTree
+from evernote.api.client import EvernoteClient
+from evernote.edam.notestore.ttypes import NoteFilter, NotesMetadataResultSpec
+from evernote.edam.type.ttypes import Tag
 from flask import Flask, jsonify, request, abort
 from flask.ext import admin
 from flask.ext.admin.contrib import sqla
 from flask.ext.admin.contrib.sqla.ajax import QueryAjaxModelLoader
+import leven
 import requests
 from sqlalchemy.orm import joinedload, contains_eager
 from sqlalchemy.orm.exc import NoResultFound
@@ -86,7 +91,7 @@ def load():
 def ingredient_list():
     query = db.session.query(Ingredient).options(joinedload(Ingredient.eans))
     if 'q' in request.args:
-        query = query.filter(Ingredient.title.like('%%%s%%' % request.args.get('q')))
+        query = query.filter(Ingredient.title.ilike('%%%s%%' % request.args.get('q')))
     if 'limit' in request.args:
         query = query.limit(int(request.args.get('limit')))
     else:
@@ -241,6 +246,81 @@ def recipe_details(recipe_id):
     return jsonify(recipe=recipe.to_json(inventory))
 
 
+@app.route('/parsereceipts')
+def parse_receipts():
+    client = EvernoteClient(token=app.config['EVERNOTE_DEV_TOKEN'], sandbox=False)
+    user_store = client.get_user_store()
+    note_store = client.get_note_store()
+    notebooks = note_store.listNotebooks()
+
+    notebook_guid = None
+    for notebook in notebooks:
+        if notebook.name == app.config['NOTEBOOK']:
+            notebook_guid = notebook.guid
+
+    if not notebook_guid:
+        return 'Notebook not found'
+
+    notebook_filter = NoteFilter()
+    notebook_filter.guid = notebook_guid
+    result_spec = NotesMetadataResultSpec(includeTitle=True, includeTagGuids=True)
+    notes = note_store.findNotesMetadata(app.config['EVERNOTE_DEV_TOKEN'], notebook_filter, 0, 40000, result_spec)
+
+    tags = note_store.listTags()
+    tag_guid = None
+    for tag in tags:
+        if tag.name == app.config['PAID_TAG']:
+            tag_guid = tag.guid
+            break
+
+    if not tag_guid:
+        tag = Tag()
+        tag.name = app.config['PAID_TAG']
+        tag = note_store.createTag(tag)
+        tag_guid = tag.guid
+
+    ingredients = Ingredient.query.filter(Ingredient.receipt_text.like('%Selbst%')).all()
+
+    receipts = []
+
+    def update_inventory(values):
+        min = 5
+        min_ingredient = None
+        for title, weight in values:
+            if len(title) < 10:
+                continue
+            # TODO: Weight cutoff
+            for ingredient in ingredients:
+                distance = leven.levenshtein(title.encode('utf8'), ingredient.receipt_text.encode('utf8'))
+                if distance < min:
+                    min = distance
+                    min_ingredient = ingredient
+        if not min_ingredient:
+            return
+        shopping_list = ShoppingList.query.first()
+        if min_ingredient in shopping_list.ingredients:
+            shopping_list.ingredients.remove(min_ingredient)
+        inventory = Inventory.get_current()
+        inventory.add_ingredient(min_ingredient, 1, 'piece')
+        db.session.commit()
+        receipts.append(min_ingredient.to_json())
+
+    for note_title in notes.notes:
+        note = note_store.getNote(note_title.guid, False, True, True, True)
+        if note.tagGuids and tag_guid in note.tagGuids:
+            continue
+        for resource in note.resources:
+            if not resource.recognition:
+                continue
+            root = ElementTree.fromstringlist(resource.recognition.body)
+            for recognitions in root:
+                values = [(v.text, v.attrib['w']) for v in recognitions]
+                update_inventory(values)
+        note.tagGuids = [tag_guid]
+        note_store.updateNote(note)
+    return jsonify(receipts=receipts)
+
+
 @app.after_request
 def close_connection(response):
     db.session.close()
@@ -284,6 +364,6 @@ admin.add_view(InventoryIngredientsAdmin(InventoryIngredients, db.session))
 
 
 if __name__ == '__main__':
-    logging.basicConfig()
-    logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+    #logging.basicConfig()
+    #logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
     app.run(threaded=True)

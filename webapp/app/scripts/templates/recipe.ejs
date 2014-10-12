@@ -12,14 +12,14 @@
   
    <div class="list-group-item ">
         <div class="row-picture">
-            <img class="circle" src="http://lorempixel.com/56/56/people/1" alt="icon">
+            <img class="circle" src="https://images1-focus-opensocial.googleusercontent.com/gadgets/proxy?url=<%=encodeURIComponent("http:"+ingredient.image) %>&container=focus&resize_w=300&resize_h=300&refresh=31536000" alt="icon">
         </div>
         <div class="row-content">
-            <h4 class="list-group-item-heading"><%=ingredient.title %>
+            <h3 class="list-group-item-heading"><%=ingredient.title %>
   <% if(ingredient.missing == true){%>
                         	<span class="label label-danger">Missing</span>
                         <% } %>
-            </h4>
+            </h3>
             <p class="list-group-item-text"><%=ingredient.amount %> <%=ingredient.unit %></p>
         </div>
     </div> 
@@ -29,6 +29,7 @@
 
    </div>
    <button  class="btn btn-success btn-lg btn-block cook_this" style="margin-top:20px;margin-bottom:0;">Cook this recipe</button>
+  <a  class="btn btn-primary btn-lg btn-block" style="margin-top:20px;margin-bottom:0;" href="#presenter/<%=recipe.id %>">Start cooking</a>
  
  
 </div>
