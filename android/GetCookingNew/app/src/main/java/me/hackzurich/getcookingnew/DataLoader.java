@@ -1,10 +1,13 @@
 package me.hackzurich.getcookingnew;
 
 import java.io.IOException;
+import java.net.URI;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -64,7 +67,7 @@ public class DataLoader {
 				objectItemData = new ObjectItem[items.length()];
 				for (int i = 0; i < items.length(); i++) {
 					JSONObject obj = items.getJSONObject(i);
-					objectItemData[i] = new ObjectItem(obj.getString("title"), obj.getString("ean"));
+					objectItemData[i] = new ObjectItem(obj.getInt("id"),obj.getString("title"), obj.getJSONArray("eans"), obj.getInt("price"));
 				}
 			} catch (JSONException e) {
 				objectItemData = null;
@@ -91,17 +94,17 @@ public class DataLoader {
 
 
 
-    public void getIngredientName(IngredientNameListener listener, String barCode) {
+    public void getIngredientName(UpdateListenener listener, String barCode) {
         new DownloadIngredientName(listener).execute("http://hackzurich.me/ingredient/" + barCode);
     }
-    public interface IngredientNameListener {
-        public void onIngredientNameAvailable(String name, String ean);
+    public interface UpdateListenener {
+        public void onUpdate(JSONObject update);
     }
     private class DownloadIngredientName extends AsyncTask<String, Void, JSONObject> {
 
-        private IngredientNameListener listener;
+        private UpdateListenener listener;
 
-        public DownloadIngredientName(IngredientNameListener listener) {
+        public DownloadIngredientName(UpdateListenener listener) {
             this.listener = listener;
         }
 
@@ -126,15 +129,13 @@ public class DataLoader {
 
             try {
                 JSONObject obj = result.getJSONObject("ingredient");
-                String name = obj.getString("title");
-                String ean = obj.getString("ean");
-                listener.onIngredientNameAvailable(name, ean);
+                listener.onUpdate(obj);
             } catch (JSONException e) {
                 e.printStackTrace();
-                listener.onIngredientNameAvailable(null, null);
+                listener.onUpdate(null);
             } catch (Exception e) {
                 e.printStackTrace();
-                listener.onIngredientNameAvailable(null, null);
+                listener.onUpdate(null);
             }
 
 
@@ -147,13 +148,20 @@ public class DataLoader {
 
 
 
-    public void buyItems(final DoneListener listener, final JSONArray items) {
+    public void buyItems(final DoneListener listener, final JSONArray items) throws JSONException {
+
+        final JSONObject data = new JSONObject();
+        data.put("inventory",items);
+        final JSONObject data2 = new JSONObject();
+        data2.put("ingredients",items);
+
+
         new PostRequest(new DoneListener() {
             @Override
             public void onDone() {
-                new DeleteRequest(listener, items).execute("http://hackzurich.me/shopping_list/");
+                new PostRequest(listener, data2).execute("http://hackzurich.me/shopping_list/delete");
             }
-        },items).execute("http://hackzurich.me/inventory/");
+        },data).execute("http://hackzurich.me/inventory");
     }
     public interface DoneListener {
         public void onDone();
@@ -171,46 +179,6 @@ public class DataLoader {
         @Override
         protected JSONObject doInBackground(String... params) {
             String content = postContent(params[0], items);
-            if(content == null)
-                return null;
-            try {
-                JSONObject reader = new JSONObject(content);
-                return reader;
-            } catch (JSONException e) {
-                e.printStackTrace();
-                return null;
-            }
-
-        }
-
-        @Override
-        protected void onPostExecute(JSONObject result) {
-            super.onPostExecute(result);
-
-            try {
-                listener.onDone();
-            } catch (Exception e) {
-                e.printStackTrace();
-                listener.onDone();
-            }
-
-
-        }
-
-    }
-    private class DeleteRequest extends AsyncTask<String, Void, JSONObject> {
-
-        private DoneListener listener;
-        private Object items;
-
-        public DeleteRequest(DoneListener listener, Object items) {
-            this.listener = listener;
-            this.items = items;
-        }
-
-        @Override
-        protected JSONObject doInBackground(String... params) {
-            String content = deleteContent(params[0], items);
             if(content == null)
                 return null;
             try {
@@ -269,39 +237,6 @@ public class DataLoader {
 
         return s;
     }
-    private String deleteContent(String url, Object items) {
-        HttpResponse response = null;
-        HttpPost httpPost = null;
-        HttpClient mHttpClient = null;
-        String s = null;
-
-        try {
-            if(mHttpClient == null) {
-                HttpParams httpParams = new BasicHttpParams();
-                //HttpConnectionParams.setConnectionTimeout(httpParams, mTimoutInSeconds * 1000);
-                //HttpConnectionParams.setSoTimeout(httpParams, mTimoutInSeconds * 1000);
-                mHttpClient = new DefaultHttpClient(httpParams);
-            }
-            httpPost = new HttpPost(url);
-            StringEntity  postingString =new StringEntity(items.toString());//convert your pojo to   json
-            httpPost.setEntity(postingString);
-            httpPost.setHeader("Content-type", "application/json");
-            response = mHttpClient.execute(httpPost);
-            if (response != null && response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                s = EntityUtils.toString(response.getEntity(), "UTF-8");
-            } else {
-                s = null;
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            s = null;
-        }
-
-        return s;
-    }
-
-
     private String getContent(String url) {
 		HttpResponse response = null;
 		HttpGet httpGet = null;

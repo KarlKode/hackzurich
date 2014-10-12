@@ -1,13 +1,13 @@
 package me.hackzurich.getcookingnew;
 
 
-import me.hackzurich.getcookingnew.DataLoader.IngredientNameListener;
+import me.hackzurich.getcookingnew.DataLoader.UpdateListenener;
 import me.hackzurich.getcookingnew.DataLoader.ShoppingListLoaderListener;
 
 import android.content.Intent;
+import android.database.DataSetObserver;
 import android.graphics.Color;
 import android.graphics.LightingColorFilter;
-import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener;
@@ -61,7 +61,13 @@ public class MainActivity extends ActionBarActivity implements OnRefreshListener
 
         // our adapter instance
         mAdapter = new ArrayAdapterItem(this, R.layout.list_view_row_item, ObjectItemData);
+        mAdapter.registerDataSetObserver( new DataSetObserver() {
+            @Override
+            public void onChanged() {
 
+                totalView.setText("Total: " + mAdapter.getTotal());
+            }
+        });
         // create a new ListView, set the adapter and item click listener
         mListViewItems = (ListView) findViewById(R.id.listView1);
         mListViewItems.setAdapter(mAdapter);
@@ -97,7 +103,11 @@ public class MainActivity extends ActionBarActivity implements OnRefreshListener
             if (item.bought) {
                 try {
                     JSONObject jo = new JSONObject();
-                    jo.put("ean", item.ean);
+                    if(item.id!=null) {
+                        jo.put("id", item.id);
+                    }else{
+                        jo.put("ean", item.eans.iterator().next());
+                    }
                     items.put(jo);
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -106,13 +116,17 @@ public class MainActivity extends ActionBarActivity implements OnRefreshListener
         }
         DataLoader dl = new DataLoader();
         mSwipeLayout.setRefreshing(true);
-        dl.buyItems(new DataLoader.DoneListener() {
-            @Override
-            public void onDone() {
+        try {
+            dl.buyItems(new DataLoader.DoneListener() {
+                @Override
+                public void onDone() {
 
-                doRefresh();
-            }
-        }, items);
+                    doRefresh();
+                }
+            }, items);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -144,35 +158,30 @@ public class MainActivity extends ActionBarActivity implements OnRefreshListener
         super.onActivityResult(requestCode, resultCode, data);
 
         if (resultCode == RESULT_OK && requestCode == REQUEST_SCAN) {
-            mSwipeLayout.setRefreshing(true);
             String ean = data.getStringExtra("cleanedBarcode");
             if (!mAdapter.checkByEAN(ean)) {
 
-                ObjectItem obj = new ObjectItem(ean, ean);
-                obj.bought = true;
-                mAdapter.addObject(obj);
+
+                final ObjectItem item = mAdapter.addObject(ean);
+			DataLoader dl = new DataLoader();
+			dl.getIngredientName(new UpdateListenener() {
+				@Override
+				public void onUpdate(JSONObject obj) {
+					if(obj == null) {
+						Toast.makeText(getApplicationContext(), "Error while getting the data from the server, please try later", Toast.LENGTH_LONG).show();
+						mSwipeLayout.setRefreshing(false);
+					} else {
+                            item.update(obj);
+                        mSwipeLayout.setRefreshing(false);
+						mAdapter.notifyDataSetChanged();
+						//doRefresh();
+					}
+
+				}
+			}, ean);
                 mAdapter.notifyDataSetChanged();
-                totalView.setText("Total: " + mAdapter.getTotal());
                 //doRefresh();
             }
-//			DataLoader dl = new DataLoader();
-//			dl.getIngredientName(new IngredientNameListener() {
-//				@Override
-//				public void onIngredientNameAvailable(String name, String ean) {
-//					if(name == null) {
-//						Toast.makeText(getApplicationContext(), "Error while getting the data from the server, please try later", Toast.LENGTH_LONG).show();
-//						mSwipeLayout.setRefreshing(false);
-//					} else {
-//						ObjectItem obj = new ObjectItem(name, ean);
-//						obj.bought = true;
-//						mAdapter.addObject(obj);
-//						mAdapter.notifyDataSetChanged();
-//						mSwipeLayout.setRefreshing(false);
-//						//doRefresh();
-//					}
-//
-//				}
-//			}, cleanedBarcode);
 
         }
 

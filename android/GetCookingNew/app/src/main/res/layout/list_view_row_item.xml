@@ -8,7 +8,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:layout_toLeftOf="@+id/textView2"
+        android:layout_toLeftOf="@+id/priceItem"
         android:layout_toRightOf="@+id/checkBoxItem"
         android:text="Item name here..."
         android:textSize="15dp" />
@@ -19,7 +19,6 @@
         android:layout_height="wrap_content"
         android:layout_alignBaseline="@+id/textViewItem"
         android:layout_alignBottom="@+id/textViewItem"
-        android:enabled="false"
         android:layout_alignParentLeft="true"/>
 
     <TextView
@@ -27,8 +26,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
+        android:layout_toLeftOf="@+id/priceItem"
         android:layout_alignTop="@+id/textViewItem"
-        android:text=""
+        android:text="asas"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
 
