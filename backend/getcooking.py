@@ -18,6 +18,18 @@ from db import db, Recipe, Ingredient, Inventory, ShoppingList, to_json, \
 import settings
 
 
+from Pubnub import Pubnub
+
+PUBLISH_KEY = "FILL_HERE"
+SUBSCRIBE_KEY = "FILL_HERE"
+
+pubnub = Pubnub(
+    'pub-c-2737ce59-7cef-4844-a3fb-8774d6b0f7d7',
+    'sub-c-b9d14884-51a7-11e4-a2b1-02ee2ddab7fe',
+    'sec-c-OTYyZmI0MzQtOTU3Zi00ZGU3LWFjZTQtMDI3NzJhN2IwZTgy',  # SECRET_KEY
+    False  # SSL_ON?
+)
+
 app = Flask(__name__)
 cors = CORS(app, automatic_options=True, headers=['Content-Type', 'X-DevTools-Emulate-Network-Conditions-Client-Id'])
 app.config.from_object(settings)
@@ -118,6 +130,7 @@ def delete_shoppinglist():
         ShoppingListIngredients.ingredient_id.in_(ids_remove)).delete(
         synchronize_session='fetch')
     db.session.commit()
+    pubnub.publish( 'shopping_list', {'update':True} )
     return jsonify(ok=True)
 
 
@@ -138,6 +151,7 @@ def shopping_list_details():
             ingredient = Ingredient.get_by_id_or_ean(item)
             shopping_list.add_ingredient(ingredient, item.get('amount'), item.get('unit'))
         db.session.commit()
+        pubnub.publish( 'shopping_list', {'update':True} )
         return jsonify(ok=True)
     else:
         shopping_list = db.session.query(ShoppingList).options(joinedload(ShoppingList.shopping_list_ingredients,ShoppingListIngredients.ingredient, Ingredient.eans)).first()
@@ -157,6 +171,7 @@ def inventory_details():
                 continue
             inventory.add_ingredient(ingredient, None, None)
         db.session.commit()
+        pubnub.publish( 'inventory', {'update':True} )
         return jsonify(inventory=inventory.to_json())
     elif request.method == 'GET':
         return jsonify(inventory=inventory.to_json())
@@ -176,6 +191,7 @@ def inventory_details():
         db.session.query(InventoryIngredients).filter(InventoryIngredients.ingredient_id.in_(ids_remove)).delete(
             synchronize_session='fetch') 
         db.session.commit()
+        pubnub.publish( 'inventory', {'update':True} )
         return jsonify(ok=True)
 
 
@@ -187,6 +203,7 @@ def inventory_delete(id_or_ean):
         return
     inventory.remove_ingredient(ingredient)
     db.session.commit()
+    pubnub.publish( 'inventory', {'update':True} )
 
 
 def current_inventory():

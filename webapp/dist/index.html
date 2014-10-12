@@ -17,7 +17,25 @@
 <div id="app"></div>
   
  
-
-        <script data-main="scripts/d47b35d1.main" src="bower_components/requirejs/require.js"></script>
+<script src="http://cdn.pubnub.com/pubnub.min.js"></script>
+ <script>(function(){
+ 
+     window.pubnub = PUBNUB.init({
+         publish_key   : 'pub-c-2737ce59-7cef-4844-a3fb-8774d6b0f7d7',
+         subscribe_key : 'sub-c-b9d14884-51a7-11e4-a2b1-02ee2ddab7fe'
+     });
+ 
+    window.shopping_list=function(){};
+    window.inventory=function(){};
+     pubnub.subscribe({
+         channel : "shopping_list",
+         message : function(m){ window.shopping_list(m) }
+     });
+      pubnub.subscribe({
+         channel : "inventory",
+         message : function(m){ window.inventory(m) }
+     });
+ })();</script>
+        <script data-main="scripts/24dd8e01.main" src="bower_components/requirejs/require.js"></script>
 </body>
 </html>
