@@ -1,4 +1,5 @@
 import logging
+import random
 from xml.etree import ElementTree
 from evernote.api.client import EvernoteClient
 from evernote.edam.notestore.ttypes import NoteFilter, NotesMetadataResultSpec
@@ -87,6 +88,17 @@ def load():
     db.session.commit()
     return jsonify(success=True, imported=inserted)
 
+
+
+@app.route('/random')
+def random_add():
+    recipes=Recipe.query.all()
+    ingred=Ingredient.query.limit(50).all()
+    for r in recipes:
+        for i in range(1,3+int(random.uniform(0,4))):
+            r.add_ingredient(random.choice(ingred),None,Nonej)
+    db.session.commit()
+    return jsonify(success=True)
 
 @app.route('/ingredient')
 def ingredient_list():
