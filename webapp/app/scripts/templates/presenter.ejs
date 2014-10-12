@@ -3,7 +3,9 @@
         <div class="carousel-inner">
         <% _.each(recipe.steps, function (step,i) { %>
  
-            <div class="<% if(i==0){ %>active<% }%> item">
+            <div class="<% if(i==0){ %>active<% }%> item"
+style="background-image:url(<%=step.image %>)"
+            >
                 <h1><%=step.title %></h1>
                 <h2><%=step.description %></h2>
             </div>

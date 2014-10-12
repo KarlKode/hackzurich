@@ -42,7 +42,7 @@
 <h3 style="margin-top:0;margin-bottom:22px">How to cook the meal</h3> 
 <% _.each(recipe.steps, function (step,i) { %>
 
-    <img class="circle" src="http://lorempixel.com/56/56/people/1" alt="icon" style="float:left; margin-right:12px">
+    <img class="img-circle" src="https://images1-focus-opensocial.googleusercontent.com/gadgets/proxy?url=<%=encodeURIComponent(step.image) %>&container=focus&resize_w=40&resize_h=40&refresh=31536000" alt="icon" style="float:left; margin-right:12px">
             <h4 style="margin-top:0"><%=step.title %></h4>
             <p ><%=step.description %></p>
  
