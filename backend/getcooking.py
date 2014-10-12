@@ -43,6 +43,7 @@ def hello_world():
 
 @app.route('/installaaaaaaaa')
 def install():
+    return 'NOPE'
     db.drop_all()
     db.create_all()
     sl = ShoppingList()
