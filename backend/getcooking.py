@@ -7,6 +7,7 @@ from flask import Flask, jsonify, request, abort
 from flask.ext import admin
 from flask.ext.admin.contrib import sqla
 from flask.ext.admin.contrib.sqla.ajax import QueryAjaxModelLoader
+import leven
 import requests
 from sqlalchemy.orm import joinedload, contains_eager
 from sqlalchemy.orm.exc import NoResultFound
@@ -241,8 +242,7 @@ def parse_receipts():
             notebook_guid = notebook.guid
 
     if not notebook_guid:
-        print 'Notebook not found'
-        return 'Nwotebook not found'
+        return 'Notebook not found'
 
     notebook_filter = NoteFilter()
     notebook_filter.guid = notebook_guid
@@ -262,13 +262,31 @@ def parse_receipts():
         tag = note_store.createTag(tag)
         tag_guid = tag.guid
 
-    def update_inventory(values):
-        for title, weight in values:
-            # TODO: Weight cutoff
-            result = db.engine.execute('SELECT id, title, levenstein(%s, ingredient.title) AS distance FROM ingredient WHERE levenstein(%s, ingredient.title) < 5', (title, title))
-            print result
+    ingredients = Ingredient.query.filter(Ingredient.receipt_text.like('%Selbst%')).all()
 
     receipts = []
+
+    def update_inventory(values):
+        min = 5
+        min_ingredient = None
+        for title, weight in values:
+            if len(title) < 10:
+                continue
+            # TODO: Weight cutoff
+            for ingredient in ingredients:
+                distance = leven.levenshtein(title.encode('utf8'), ingredient.receipt_text.encode('utf8'))
+                if distance < min:
+                    min = distance
+                    min_ingredient = ingredient
+        if not min_ingredient:
+            return
+        shopping_list = ShoppingList.query.first()
+        if min_ingredient in shopping_list.ingredients:
+            shopping_list.ingredients.remove(min_ingredient)
+        inventory = Inventory.get_current()
+        inventory.add_ingredient(min_ingredient, 1, 'piece')
+        db.session.commit()
+        receipts.append(min_ingredient.to_json())
 
     for note_title in notes.notes:
         note = note_store.getNote(note_title.guid, False, True, True, True)
@@ -282,8 +300,7 @@ def parse_receipts():
                 values = [(v.text, v.attrib['w']) for v in recognitions]
                 update_inventory(values)
         note.tagGuids = [tag_guid]
-        receipts.append(note.guid)
-        #note_store.updateNote(note)
+        note_store.updateNote(note)
     return jsonify(receipts=receipts)
 
 
@@ -330,6 +347,6 @@ admin.add_view(InventoryIngredientsAdmin(InventoryIngredients, db.session))
 
 
 if __name__ == '__main__':
-    logging.basicConfig()
-    logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+    #logging.basicConfig()
+    #logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
     app.run(threaded=True)
