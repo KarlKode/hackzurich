@@ -217,8 +217,18 @@ div{
     text-align:center;
     }
 }
-.carousel .item img {
-    width: 100%; /*img width*/
+.carousel .item {
+   text-shadow:
+       3px 3px 0 #FFF,
+     -1px -1px 0 #FFF,  
+      1px -1px 0 #FFF,
+      -1px 1px 0 #FFF,
+       1px 1px 0 #FFF;
+ background-size: cover;
+ font-weight:bold;
+ }
+.carousel .item.active {
+    margin-top: -20px;
 }
 /*add some makeup*/
 .carousel .carousel-control {
