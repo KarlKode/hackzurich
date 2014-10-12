@@ -96,7 +96,7 @@ def random_add():
     ingred=Ingredient.query.limit(50).all()
     for r in recipes:
         for i in range(1,3+int(random.uniform(0,4))):
-            r.add_ingredient(random.choice(ingred),None,Nonej)
+            r.add_ingredient(random.choice(ingred),None,None)
     db.session.commit()
     return jsonify(success=True)
 
