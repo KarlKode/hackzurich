@@ -79,7 +79,7 @@ def load():
 def ingredient_list():
     query = db.session.query(Ingredient).options(joinedload(Ingredient.eans))
     if 'q' in request.args:
-        query = query.filter(Ingredient.title.like('%%%s%%' % request.args.get('q')))
+        query = query.filter(Ingredient.title.ilike('%%%s%%' % request.args.get('q')))
     if 'limit' in request.args:
         query = query.limit(int(request.args.get('limit')))
     else:
