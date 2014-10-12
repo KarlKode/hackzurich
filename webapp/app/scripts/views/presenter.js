@@ -24,7 +24,8 @@ define([
         //     return {recipes:this.collection.toJSON()};
         // }
         after_render: function(){
-            this.$el.find('.carousel').carousel({
+            var car = this.$el.find('.carousel');
+            car.carousel({
   interval: 200000
 });
             this.$el.find('.item').height(window.innerHeight);
@@ -45,7 +46,11 @@ define([
                     interim_transcript += event.results[i][0].transcript;
                   }
                 }
-                alert(final_transcript);
+                if(final_transcript.trim()=="next"){
+                    car.carousel('next');
+                }else if(final_transcript.trim()=="previous"){
+                    car.carousel('prev');
+                }
               };
             this.recognition.start();
         },
