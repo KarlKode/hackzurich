@@ -71,7 +71,7 @@ def load():
                     ingredient.add_ean(ean_code)
                 ingredient.from_product(product)
             inserted += 1
-        db.session.commit()
+    db.session.commit()
     return jsonify(success=True, imported=inserted)
 
 
