@@ -21,6 +21,8 @@ define([
             BaseView.prototype.initialize.call(this);
             this.model.fetch({reset:true});
 
+            var self=this;
+            window.inventory=function(){self.model.fetch({reset:true})};
         },
 
         events: {
@@ -141,6 +143,10 @@ this.$el.find('.add_item').selectize({
         },
         get_data: function(){
             return {ingredients:this.model.toJSON().ingredients};
+        },
+        remove:function(){
+
+            window.inventory=function(){};
         }
     });
 
