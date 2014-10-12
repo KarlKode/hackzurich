@@ -1,7 +1,7 @@
 <h2><%=recipe.title%></h2> 
 <div class="row">
 <div class="  col-md-8"> 
-<img class="well" src="http://localhost:6001/roasted-eggplant-soup-recipe1.jpg" style="max-width:100%" >
+<img class="well" src="<%=recipe.images%>" style="max-width:100%" >
   </div>
 <div class=" col-md-4"> 
 <div class="well">
@@ -12,14 +12,14 @@
   
    <div class="list-group-item ">
         <div class="row-picture">
-            <img class="circle" src="http://lorempixel.com/56/56/people/1" alt="icon">
+            <img class="circle" src="https://images1-focus-opensocial.googleusercontent.com/gadgets/proxy?url=<%=encodeURIComponent("http:"+ingredient.image) %>&container=focus&resize_w=300&resize_h=300&refresh=31536000" alt="icon">
         </div>
         <div class="row-content">
-            <h4 class="list-group-item-heading"><%=ingredient.title %>
+            <h3 class="list-group-item-heading"><%=ingredient.title %>
   <% if(ingredient.missing == true){%>
                         	<span class="label label-danger">Missing</span>
                         <% } %>
-            </h4>
+            </h3>
             <p class="list-group-item-text"><%=ingredient.amount %> <%=ingredient.unit %></p>
         </div>
     </div> 
@@ -29,6 +29,7 @@
 
    </div>
    <button  class="btn btn-success btn-lg btn-block cook_this" style="margin-top:20px;margin-bottom:0;">Cook this recipe</button>
+  <a  class="btn btn-primary btn-lg btn-block" style="margin-top:20px;margin-bottom:0;" href="#presenter/<%=recipe.id %>">Start cooking</a>
  
  
 </div>
@@ -41,7 +42,7 @@
 <h3 style="margin-top:0;margin-bottom:22px">How to cook the meal</h3> 
 <% _.each(recipe.steps, function (step,i) { %>
 
-    <img class="circle" src="http://lorempixel.com/56/56/people/1" alt="icon" style="float:left; margin-right:12px">
+    <img class="img-circle" src="https://images1-focus-opensocial.googleusercontent.com/gadgets/proxy?url=<%=encodeURIComponent(step.image) %>&container=focus&resize_w=40&resize_h=40&refresh=31536000" alt="icon" style="float:left; margin-right:12px">
             <h4 style="margin-top:0"><%=step.title %></h4>
             <p ><%=step.description %></p>
  
@@ -65,7 +66,7 @@
 	%>
                <div class="checkbox  radio-primary">
                     <label>
-                        <input type="checkbox" data-ean="<%=ingredient.ean %>" data-amount="<%=ingredient.amount %>" data-unit="<%=ingredient.unit %>" class="ingredient" <% if(ingredient.missing == true){%>
+                        <input type="checkbox" data-id="<%=ingredient.id %>" data-amount="<%=ingredient.amount %>" data-unit="<%=ingredient.unit %>" class="ingredient" <% if(ingredient.missing == true){%>
                         	checked
                         <% } %>> <%=ingredient.title %>
                       

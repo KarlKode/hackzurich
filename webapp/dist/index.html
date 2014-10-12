@@ -6,8 +6,9 @@
         <title>Getcooking</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="http://fonts.googleapis.com/css?family=Pacifico" rel="stylesheet" type="text/css">
         <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
-        <link rel="stylesheet" href="styles/e6e7575e.main.css">
+        <link rel="stylesheet" href="styles/30e2ee43.main.css">
         <script src="scripts/vendor/a52a8685.modernizr.js"></script>
     </head>
        <body>
@@ -17,7 +18,25 @@
 <div id="app"></div>
   
  
-
-        <script data-main="scripts/ef8315a0.main" src="bower_components/requirejs/require.js"></script>
+<script src="http://cdn.pubnub.com/pubnub.min.js"></script>
+ <script>(function(){
+ 
+     window.pubnub = PUBNUB.init({
+         publish_key   : 'pub-c-2737ce59-7cef-4844-a3fb-8774d6b0f7d7',
+         subscribe_key : 'sub-c-b9d14884-51a7-11e4-a2b1-02ee2ddab7fe'
+     });
+ 
+    window.shopping_list=function(){};
+    window.inventory=function(){};
+     pubnub.subscribe({
+         channel : "shopping_list",
+         message : function(m){ window.shopping_list(m) }
+     });
+      pubnub.subscribe({
+         channel : "inventory",
+         message : function(m){ window.inventory(m) }
+     });
+ })();</script>
+        <script data-main="scripts/b857d0f0.main" src="bower_components/requirejs/require.js"></script>
 </body>
 </html>

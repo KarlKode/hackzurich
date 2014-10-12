@@ -36,7 +36,7 @@ define([
         add_to_list: function(e){
             e.preventDefault();
             var elements = _.map(this.$el.find('.ingredient:checked'), function(item){
-                return {'ean':$(item).data('ean'),'amount':$(item).data('amount'),'unit':$(item).data('unit')};
+                return {'id':$(item).data('id'),'amount':$(item).data('amount'),'unit':$(item).data('unit')};
             });
             $.ajax({
                 contentType: 'application/json',

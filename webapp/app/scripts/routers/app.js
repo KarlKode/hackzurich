@@ -4,23 +4,26 @@ define([
     'jquery',
     'backbone',
     'views/layout',
+    'views/fullscreen',
     'views/main',
     'views/recipes',
     'views/recipe',
     'views/inventory',
     'views/ingredients',
-    'views/shopping_list'
-], function ($, Backbone, LayoutView, MainView, RecipesView, RecipeView, InventoryView, IngredientsView, ShoppingListView) {
+    'views/shopping_list',
+    'views/presenter'
+], function ($, Backbone, LayoutView, FullscreenView, MainView, RecipesView, RecipeView, InventoryView, IngredientsView, ShoppingListView, PresenterView) {
     'use strict';
 
     var AppRouter = Backbone.Router.extend({
         routes: {
-            '': 'index',
+            '': 'recipes',
             'recipes': 'recipes',
             'inventory': 'inventory',
             'recipes/:id': 'recipe',
             'ingredients': 'ingredients',
-            'shopping_list': 'shopping_list'
+            'shopping_list': 'shopping_list',
+            'presenter/:id': 'presenter'
         },
 
         views: {
@@ -31,7 +34,8 @@ define([
             'RecipeView': RecipeView,
             'InventoryView':InventoryView,
             'IngredientsView':IngredientsView,
-            'ShoppingListView':ShoppingListView
+            'ShoppingListView':ShoppingListView,
+            'PresenterView':PresenterView
         },
 
         current_layout: null,
@@ -45,11 +49,18 @@ define([
         layouts: {
             'main': function(){
                 return new LayoutView();
+            },
+            'fullscreen': function(){
+                return new FullscreenView();
             }
         },
  
         index: function (argument) {
             this.loadView('main', 'MainView', arguments);
+        }, 
+ 
+        presenter: function (argument) {
+            this.loadView('fullscreen', 'PresenterView', arguments);
         },  
 
         recipes: function (argument) {

@@ -13,12 +13,22 @@
 <div class="row">
   <div class="col-md-12">
 <% _.each(ingredients, function (ingredient) { %>
-    <div class="well">
+    <div class="well row">
+  <div class="col-xs-1">
+    <img class="img-circle" style="max-width:100%;float:left" src="https://images1-focus-opensocial.googleusercontent.com/gadgets/proxy?url=<%=encodeURIComponent("http:"+ingredient.image) %>&container=focus&resize_w=300&resize_h=300&refresh=31536000" alt="icon">
+    </div>
+  <div class="col-xs-11"> 
+      <a href="#" class="btn btn-danger remove" data-id="<%=ingredient.id%>" role="button" style="float: right;margin: 0;margin-top: -3px;">Remove</a>
  
-      <div class="caption">
-      <a href="#" class="btn btn-danger remove" data-ean="<%=ingredient.ean%>" role="button" style="float: right;margin: 0;margin-top: -3px;">Remove</a>
+         
+
         <h3 style="margin:0"><%=ingredient.title%></h3> 
-      </div>
+        <% if(ingredient.price!=null) { %>
+        <h4 style="color:#333"><%=ingredient.price?(ingredient.price/100.0).toFixed(2)+" CHF":"" %></h4>
+        <% } %>
+    
+   
+  </div>
     
   </div>
 <% }) %>
