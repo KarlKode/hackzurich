@@ -31,7 +31,7 @@ pubnub = Pubnub(
 )
 
 app = Flask(__name__)
-cors = CORS(app, automatic_options=True, headers=['Content-Type', 'X-DevTools-Emulate-Network-Conditions-Client-Id'])
+#cors = CORS(app, automatic_options=True, headers=['Content-Type', 'X-DevTools-Emulate-Network-Conditions-Client-Id'])
 app.config.from_object(settings)
 db.init_app(app)
 
